@@ -224,9 +224,8 @@ namespace TorqueSharp.Lexer
 		private void ScanComment()
 		{
 			var commentCol = _col - 1;
-			var multiline = Advance(append: false) == '*';
 
-			if (multiline)
+			if (Advance(append: false) == '*')
 			{
 				var matchingEnd = false;
 
