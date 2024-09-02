@@ -10,7 +10,7 @@
 
 using TorqueSharp.Lexer;
 
-foreach (var token in new Lexer().Scan(File.ReadAllText("../../test.cs")))
+foreach (var token in new Lexer().Scan(File.ReadAllText("test.cs")))
 {
 	Console.WriteLine($"{token.Type}: {token.Value}");
 }
