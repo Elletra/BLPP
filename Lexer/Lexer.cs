@@ -34,6 +34,7 @@ namespace TorqueSharp.Lexer
 		private enum CharType
 		{
 			Letter,
+			IdentifierStart,
 			Identifier,
 			Digit,
 			HexDigit,
@@ -193,7 +194,7 @@ namespace TorqueSharp.Lexer
 			{
 				ScanComment();
 			}
-			else if (ch == '%' && (MatchLetter() || Match('_')))
+			else if (ch == '%' && MatchIdentifierStart())
 			{
 				ScanVariable(ch);
 			}
@@ -264,7 +265,7 @@ namespace TorqueSharp.Lexer
 			{
 				type = TokenType.Operator;
 			}
-			else if (MatchLetter() || Match('_'))
+			else if (MatchIdentifierStart())
 			{
 				Advance();
 
@@ -445,6 +446,7 @@ namespace TorqueSharp.Lexer
 			return peek.HasValue && type switch
 			{
 				CharType.Letter => char.IsAsciiLetter(ch),
+				CharType.IdentifierStart => char.IsAsciiLetter(ch) || ch == '_',
 				CharType.Identifier => char.IsAsciiLetterOrDigit(ch) || ch == '_',
 				CharType.Digit => char.IsAsciiDigit(ch),
 				CharType.HexDigit => char.IsAsciiHexDigit(ch),
@@ -453,6 +455,7 @@ namespace TorqueSharp.Lexer
 		}
 
 		private bool MatchLetter(int offset = 0) => Match(CharType.Letter, offset);
+		private bool MatchIdentifierStart(int offset = 0) => Match(CharType.IdentifierStart, offset);
 		private bool MatchIdentifierChar(int offset = 0) => Match(CharType.Identifier, offset);
 		private bool MatchDigit(int offset = 0) => Match(CharType.Digit, offset);
 		private bool MatchHexDigit(int offset = 0) => Match(CharType.HexDigit, offset);
