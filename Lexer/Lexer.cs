@@ -119,6 +119,8 @@ namespace TorqueSharp.Lexer
 		{
 			while (!IsAtEnd)
 			{
+				_token = "";
+
 				var ch = Advance();
 
 				switch (ch)
@@ -162,8 +164,6 @@ namespace TorqueSharp.Lexer
 
 						break;
 				}
-
-				_token = "";
 			}
 		}
 
