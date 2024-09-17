@@ -11,10 +11,9 @@
 using System.Diagnostics;
 using BLPP.Lexer;
 
-var code = File.ReadAllText("../../allGameScripts.cs");
+var code = File.ReadAllText("../../test.cs");
 
-var watch = Stopwatch.StartNew();
-new Lexer().Scan(code);
-watch.Stop();
-
-Console.WriteLine($"Elapsed time: {watch.Elapsed.TotalMilliseconds}");
+foreach (var token in new Lexer().Scan(code))
+{
+	Console.WriteLine($"{token.Type}: {token.Value}");
+}
