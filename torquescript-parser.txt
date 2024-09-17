@@ -1,0 +1,159 @@
+==== Package ====
+
+package name
+{
+	<function_list>	
+};
+
+
+==== Function declaration ====
+
+function name(<function_arg_list>)
+{
+	<statement_list>
+}
+
+function namespace::name(<function_arg_list>)
+{
+	<statement_list>
+}
+
+
+==== do ... while loop ====
+
+do
+{
+	<statement_list>
+}
+while(<expression>)
+
+
+==== while loop ====
+
+while(<expression>)
+{
+	<statement_list>
+}
+
+
+==== for loop ====
+
+for(<init_expression>; <test_expression>; <end_expression>)
+{
+	<statement_list>
+}
+
+
+==== break ====
+
+break;
+
+
+==== continue ====
+
+continue;
+
+
+==== return ====
+
+return;
+return <expression>;
+
+
+==== if/if-else ====
+
+if (<expression>)
+	<statement>
+
+if (<expression>)
+{
+	<statement_list>
+}
+
+if (<expression>)
+	<statement>
+else
+	<statement>
+
+if (<expression>)
+	<statement>
+else
+{
+	<statement_list>
+}
+
+if (<expression>)
+{
+	<statement_list>
+}
+else
+	<statement>
+
+if (<expression>)
+{
+	<statement_list>
+}
+else
+{
+	<statement_list>
+}
+
+
+==== new ====
+
+new (<class_expression>)(<name_expression> : parent_name, <object_arg_list>);
+
+new (<class_expression>)(<name_expression> : parent_name, <object_arg_list>)
+{
+	<assignment_list>
+	<child_object_list>	
+};
+
+
+==== switch/switch$ ====
+
+(switch or switch$)
+
+switch (<expression>)
+{
+	case <expression>:
+		<statement_list>
+
+	case <expression>:
+		<statement_list>
+
+	case <expression> or <expression> or <expression>:
+		<statement_list>
+
+	default:
+		<statement_list>
+}
+
+
+==== datablock ====
+
+datablock type(name : parent_name)
+{
+	<assignment_list>	
+};
+
+
+==== Variable assignment ====
+
+($ or %)
+
+$var = <expression>;
+$var <operator>= <expression>;
+$var[<expression>] = <expression>;
+$var[<expression>] <operator>= <expression>;
+
+$var++;
+$var--;
+
+
+==== Function call ====
+
+functionName();
+namespace::functionName();
+object.functionName();
+
