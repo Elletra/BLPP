@@ -3,14 +3,18 @@
  *
  * Copyright (C) 2024 Elletra
  *
- * This file is part of the TorqueSharp source code. It may be used under the BSD 3-Clause License.
+ * This file is part of the BLPP source code. It may be used under the BSD 3-Clause License.
  *
  * For full terms see the LICENSE file or visit https://spdx.org/licenses/BSD-3-Clause.html
  */
 
-using TorqueSharp.Lexer;
+using System.Diagnostics;
+using BLPP.Lexer;
 
-foreach (var token in new Lexer().Scan(File.ReadAllText("test.cs")))
-{
-	Console.WriteLine($"{token.Type}: {token.Value}");
-}
+var code = File.ReadAllText("../../allGameScripts.cs");
+
+var watch = Stopwatch.StartNew();
+new Lexer().Scan(code);
+watch.Stop();
+
+Console.WriteLine($"Elapsed time: {watch.Elapsed.TotalMilliseconds}");

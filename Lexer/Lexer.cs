@@ -3,14 +3,14 @@
  *
  * Copyright (C) 2024 Elletra
  *
- * This file is part of the TorqueSharp source code. It may be used under the BSD 3-Clause License.
+ * This file is part of the BLPP source code. It may be used under the BSD 3-Clause License.
  *
  * For full terms see the LICENSE file or visit https://spdx.org/licenses/BSD-3-Clause.html
  */
 
 using System.Collections.Immutable;
 
-namespace TorqueSharp.Lexer
+namespace BLPP.Lexer
 {
 	public enum TokenType
 	{
@@ -33,7 +33,6 @@ namespace TorqueSharp.Lexer
 	{
 		private enum CharType
 		{
-			Letter,
 			IdentifierStart,
 			Identifier,
 			Digit,
@@ -45,7 +44,6 @@ namespace TorqueSharp.Lexer
 			"package",
 			"function",
 			"return",
-			"do",
 			"while",
 			"for",
 			"break",
@@ -444,7 +442,6 @@ namespace TorqueSharp.Lexer
 
 			return peek.HasValue && type switch
 			{
-				CharType.Letter => char.IsAsciiLetter(ch),
 				CharType.IdentifierStart => char.IsAsciiLetter(ch) || ch == '_',
 				CharType.Identifier => char.IsAsciiLetterOrDigit(ch) || ch == '_',
 				CharType.Digit => char.IsAsciiDigit(ch),
@@ -453,7 +450,6 @@ namespace TorqueSharp.Lexer
 			};
 		}
 
-		private bool MatchLetter(int offset = 0) => Match(CharType.Letter, offset);
 		private bool MatchIdentifierStart(int offset = 0) => Match(CharType.IdentifierStart, offset);
 		private bool MatchIdentifierChar(int offset = 0) => Match(CharType.Identifier, offset);
 		private bool MatchDigit(int offset = 0) => Match(CharType.Digit, offset);
