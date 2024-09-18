@@ -29,6 +29,31 @@ namespace BLPP.Lexer
 		public string Value { get; } = value;
 		public int Line { get; } = line;
 		public int Col { get; } = col;
+
+		public bool IsPreprocessorToken => Type switch
+		{
+			TokenType.Directive => true,
+			TokenType.DirectiveArgs => true,
+			TokenType.DirectiveVariable => true,
+			TokenType.DirectiveCurlyLeft => true,
+			TokenType.DirectiveCurlyRight => true,
+			TokenType.DirectiveConcat => true,
+			TokenType.Macro => true,
+			TokenType.MacroKeyword => true,
+			_ => false,
+		};
+
+		/// <summary>
+		/// Whether or not this token can be used in a macro definition body.
+		/// </summary>
+		public bool IsValidMacroBodyToken => Type switch
+		{
+			TokenType.Directive => false,
+			TokenType.DirectiveArgs => false,
+			TokenType.DirectiveCurlyLeft => false,
+			TokenType.DirectiveCurlyRight => false,
+			_ => true,
+		};
 	}
 
 	public class Lexer
@@ -319,7 +344,7 @@ namespace BLPP.Lexer
 
 				if (!matchingEnd)
 				{
-					throw new UnterminatedComment(_line, col);
+					throw new UnterminatedCommentException(_line, col);
 				}
 			}
 			else
@@ -389,7 +414,7 @@ namespace BLPP.Lexer
 
 				if (next == '\r' || next == '\n')
 				{
-					throw new UnexpectedEndOfLine(line, _col - 1);
+					throw new UnexpectedEndOfLineException(line, _col - 1);
 				}
 
 				matchingQuote = next == quote && escapeChars % 2 == 0;
@@ -402,7 +427,7 @@ namespace BLPP.Lexer
 
 			if (!matchingQuote)
 			{
-				throw new UnterminatedString(line, col);
+				throw new UnterminatedStringException(line, col);
 			}
 
 			AddToken(TokenType.String, line, col);

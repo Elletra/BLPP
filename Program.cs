@@ -8,12 +8,17 @@
  * For full terms see the LICENSE file or visit https://spdx.org/licenses/BSD-3-Clause.html
  */
 
-using System.Diagnostics;
 using BLPP.Lexer;
+using BLPP.Preprocessor;
 
 var code = File.ReadAllText("../../test.cs");
+var tokens = new Lexer().Scan(code);
 
-foreach (var token in new Lexer().Scan(code))
+try
 {
-	Console.WriteLine($"{token.Type}: {token.Value}");
+	new Preprocessor().Process(tokens);
+}
+catch (Exception except)
+{
+	Console.WriteLine($"[ERROR] {except.Message}");
 }
