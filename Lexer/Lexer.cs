@@ -14,15 +14,13 @@ namespace BLPP.Lexer
 {
 	public enum TokenType
 	{
-		Identifier,
 		Keyword,
-		Number,
-		String,
-		Variable,
-		Delimiter,
-		Operator,
-		Directive,
-		Args,
+		Identifier, Number, String, Variable,
+		ParenLeft, ParenRight, CurlyLeft, CurlyRight, SquareLeft, SquareRight,
+		Comma, Period, QuestionMark, Colon, ColonColon, Semicolon,
+		Operator, AssignOperator,
+		Directive, DirectiveArgs, DirectiveVariable, DirectiveCurlyLeft, DirectiveCurlyRight,
+		DirectiveConcat, Macro, MacroKeyword,
 	};
 
 	public class Token(TokenType type, string value, int line, int col)
@@ -211,21 +209,57 @@ namespace BLPP.Lexer
 				throw new UnexpectedTokenException(ch, line, col);
 			}
 
-			AddToken(TokenType.Directive, line, col);
+			AddToken(_token[..2] switch
+			{
+				"#{" => TokenType.DirectiveCurlyLeft,
+				"#}" => TokenType.DirectiveCurlyRight,
+				"#@" => TokenType.DirectiveConcat,
+				"#%" => TokenType.DirectiveVariable,
+				"##" => TokenType.Directive,
+				"#!" => TokenType.MacroKeyword,
+				_ => TokenType.Macro,
+			}, line, col);
 		}
 
 		private void ScanDelimiter(char ch, int line, int col)
 		{
-			var type = TokenType.Delimiter;
+			TokenType type;
 
-			if (ch == ':')
+			switch (ch)
 			{
-				MatchAdvance(':');
-			}
-			else if (ch == '.' && Match(".."))
-			{
-				type = TokenType.Args;
-				Advance(amount: 2);
+				case ':':
+					type = MatchAdvance(':') ? TokenType.ColonColon : TokenType.Colon;
+					break;
+
+				case '.':
+					type = TokenType.Period;
+
+					if (Match(".."))
+					{
+						type = TokenType.DirectiveArgs;
+						Advance(amount: 2);
+					}
+
+					break;
+
+				default:
+				{
+					type = ch switch
+					{
+						'(' => TokenType.ParenLeft,
+						')' => TokenType.ParenRight,
+						'{' => TokenType.CurlyLeft,
+						'}' => TokenType.CurlyRight,
+						'[' => TokenType.SquareLeft,
+						']' => TokenType.SquareRight,
+						',' => TokenType.Comma,
+						'?' => TokenType.QuestionMark,
+						';' => TokenType.Semicolon,
+						_ => throw new UnexpectedTokenException(ch, line, col),
+					};
+
+					break;
+				}
 			}
 
 			AddToken(type, line, col);
