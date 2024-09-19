@@ -19,23 +19,33 @@ namespace BLPP.Lexer
 		ParenLeft, ParenRight, CurlyLeft, CurlyRight, SquareLeft, SquareRight,
 		Comma, Period, QuestionMark, Colon, ColonColon, Semicolon,
 		Operator, AssignOperator,
-		Directive, DirectiveArgs, DirectiveCurlyLeft, DirectiveCurlyRight,
+		Directive, DirectiveCurlyLeft, DirectiveCurlyRight,
 		DirectiveConcat, Macro, MacroArgument, MacroKeyword,
 	};
 
-	public class Token(TokenType type, string value, int line, int col)
+	public class Token
 	{
-		public TokenType Type { get; } = type;
-		public string Value { get; } = value;
-		public int Line { get; } = line;
-		public int Col { get; } = col;
+		public TokenType Type { get; }
+		public string Value { get; }
+		public int Line { get; set; }
 
-		public int EndCol => Col + Value.Length;
+		public Token(TokenType type, string value, int line)
+		{
+			Type = type;
+			Value = value;
+			Line = line;
+		}
+
+		public Token(Token copy, int line)
+		{
+			Type = copy.Type;
+			Value = copy.Value;
+			Line = line;
+		}
 
 		public bool IsPreprocessorToken => Type switch
 		{
 			TokenType.Directive => true,
-			TokenType.DirectiveArgs => true,
 			TokenType.DirectiveCurlyLeft => true,
 			TokenType.DirectiveCurlyRight => true,
 			TokenType.DirectiveConcat => true,
@@ -51,7 +61,6 @@ namespace BLPP.Lexer
 		public bool IsValidMacroBodyToken => Type switch
 		{
 			TokenType.Directive => false,
-			TokenType.DirectiveArgs => false,
 			TokenType.DirectiveCurlyLeft => false,
 			TokenType.DirectiveCurlyRight => false,
 			_ => true,
@@ -184,11 +193,11 @@ namespace BLPP.Lexer
 					default:
 						if (char.IsAsciiDigit(ch))
 						{
-							ScanNumber(ch, tokenLine, tokenCol);
+							ScanNumber(ch, tokenLine);
 						}
 						else if (char.IsAsciiLetter(ch) || ch == '_')
 						{
-							ScanIdentifierOrKeyword(tokenLine, tokenCol);
+							ScanIdentifierOrKeyword(tokenLine);
 						}
 						else
 						{
@@ -245,51 +254,26 @@ namespace BLPP.Lexer
 				"#%" => TokenType.MacroArgument,
 				"#!" => TokenType.MacroKeyword,
 				_ => TokenType.Macro,
-			}, line, col);
+			}, line);
 		}
 
 		private void ScanDelimiter(char ch, int line, int col)
 		{
-			TokenType type;
-
-			switch (ch)
+			AddToken(ch switch
 			{
-				case ':':
-					type = MatchAdvance(':') ? TokenType.ColonColon : TokenType.Colon;
-					break;
-
-				case '.':
-					type = TokenType.Period;
-
-					if (Match(".."))
-					{
-						type = TokenType.DirectiveArgs;
-						Advance(amount: 2);
-					}
-
-					break;
-
-				default:
-				{
-					type = ch switch
-					{
-						'(' => TokenType.ParenLeft,
-						')' => TokenType.ParenRight,
-						'{' => TokenType.CurlyLeft,
-						'}' => TokenType.CurlyRight,
-						'[' => TokenType.SquareLeft,
-						']' => TokenType.SquareRight,
-						',' => TokenType.Comma,
-						'?' => TokenType.QuestionMark,
-						';' => TokenType.Semicolon,
-						_ => throw new UnexpectedTokenException(ch, line, col),
-					};
-
-					break;
-				}
-			}
-
-			AddToken(type, line, col);
+				'(' => TokenType.ParenLeft,
+				')' => TokenType.ParenRight,
+				'{' => TokenType.CurlyLeft,
+				'}' => TokenType.CurlyRight,
+				'[' => TokenType.SquareLeft,
+				']' => TokenType.SquareRight,
+				'.' => TokenType.Period,
+				',' => TokenType.Comma,
+				'?' => TokenType.QuestionMark,
+				':' => MatchAdvance(':') ? TokenType.ColonColon : TokenType.Colon,
+				';' => TokenType.Semicolon,
+				_ => throw new UnexpectedTokenException(ch, line, col),
+			}, line);
 		}
 
 		private void ScanOperator(char ch, int line, int col)
@@ -321,7 +305,7 @@ namespace BLPP.Lexer
 					}
 				}
 
-				AddToken(TokenType.Operator, line, col);
+				AddToken(TokenType.Operator, line);
 			}
 		}
 
@@ -402,7 +386,7 @@ namespace BLPP.Lexer
 				throw new UnexpectedTokenException(ch, line, col);
 			}
 
-			AddToken(type, line, col);
+			AddToken(type, line);
 		}
 
 		private void ScanString(char quote, int line, int col)
@@ -416,7 +400,7 @@ namespace BLPP.Lexer
 
 				if (next == '\r' || next == '\n')
 				{
-					throw new UnexpectedEndOfLineException(line, _col - 1);
+					throw new UnexpectedEndOfLineException(line);
 				}
 
 				matchingQuote = next == quote && escapeChars % 2 == 0;
@@ -432,10 +416,10 @@ namespace BLPP.Lexer
 				throw new UnterminatedStringException(line, col);
 			}
 
-			AddToken(TokenType.String, line, col);
+			AddToken(TokenType.String, line);
 		}
 
-		private void ScanNumber(char ch, int line, int col)
+		private void ScanNumber(char ch, int line)
 		{
 			if (ch == '0' && MatchCaseInsensitive('x') && MatchHexDigit(offset: 1))
 			{
@@ -471,7 +455,7 @@ namespace BLPP.Lexer
 				}
 			}
 
-			AddToken(TokenType.Number, line, col);
+			AddToken(TokenType.Number, line);
 		}
 
 		private void ScanDigits()
@@ -482,14 +466,14 @@ namespace BLPP.Lexer
 			}
 		}
 
-		private void ScanIdentifierOrKeyword(int line, int col)
+		private void ScanIdentifierOrKeyword(int line)
 		{
 			while (MatchIdentifierChar())
 			{
 				Advance();
 			}
 
-			AddToken(_keywords.Contains(_token) ? TokenType.Keyword : TokenType.Identifier, line, col);
+			AddToken(_keywords.Contains(_token) ? TokenType.Keyword : TokenType.Identifier, line);
 		}
 
 		private char Advance(bool append = true)
@@ -579,9 +563,9 @@ namespace BLPP.Lexer
 			return match;
 		}
 
-		private void AddToken(TokenType type, int line, int col)
+		private void AddToken(TokenType type, int line)
 		{
-			_tokens.Add(new(type, _token, line, col));
+			_tokens.Add(new(type, _token, line));
 			_token = "";
 		}
 	}

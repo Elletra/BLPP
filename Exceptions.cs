@@ -16,8 +16,9 @@ namespace BLPP
 	{
 		public UnexpectedTokenException() { }
 		public UnexpectedTokenException(string token, int line, int col) : base($"Unexpected token '{token}' at line {line}, col {col}") { }
+		public UnexpectedTokenException(string token, int line) : base($"Unexpected token '{token}' on line {line}") { }
 		public UnexpectedTokenException(char ch, int line, int col) : this($"{ch}", line, col) { }
-		public UnexpectedTokenException(Token token) : this(token.Value, token.Line, token.Col) { }
+		public UnexpectedTokenException(Token token) : this(token.Value, token.Line) { }
 		public UnexpectedTokenException(string message) : base(message) { }
 		public UnexpectedTokenException(string message, Exception inner) : base(message, inner) { }
 	}
@@ -25,8 +26,8 @@ namespace BLPP
 	public class UnexpectedEndOfLineException : Exception
 	{
 		public UnexpectedEndOfLineException() { }
-		public UnexpectedEndOfLineException(int line, int col) : base($"Unexpected end of line at line {line}, col {col}") { }
-		public UnexpectedEndOfLineException(Token token) : this(token.Line, token.Col + token.Value.Length) { }
+		public UnexpectedEndOfLineException(int line) : base($"Unexpected end of line on line {line}") { }
+		public UnexpectedEndOfLineException(Token token) : this(token.Line) { }
 		public UnexpectedEndOfLineException(string message) : base(message) { }
 		public UnexpectedEndOfLineException(string message, Exception inner) : base(message, inner) { }
 	}
@@ -34,8 +35,8 @@ namespace BLPP
 	public class UnexpectedEndOfCodeException : Exception
 	{
 		public UnexpectedEndOfCodeException() { }
-		public UnexpectedEndOfCodeException(int line, int col) : base($"Unexpected end of code at line {line}, col {col}") { }
-		public UnexpectedEndOfCodeException(Token token) : this(token.Line, token.Col + token.Value.Length) { }
+		public UnexpectedEndOfCodeException(int line) : base($"Unexpected end of code on line {line}") { }
+		public UnexpectedEndOfCodeException(Token token) : this(token.Line) { }
 		public UnexpectedEndOfCodeException(string message) : base(message) { }
 		public UnexpectedEndOfCodeException(string message, Exception inner) : base(message, inner) { }
 	}
@@ -59,7 +60,7 @@ namespace BLPP
 	public class SyntaxException : Exception
 	{
 		public SyntaxException() { }
-		public SyntaxException(string message, Token token) : base($"Syntax error at line {token.Line}, col {token.Col}: {message}") { }
+		public SyntaxException(string message, Token token) : base($"Syntax error on line {token.Line}: {message}") { }
 		public SyntaxException(string message) : base(message) { }
 		public SyntaxException(string message, Exception inner) : base(message, inner) { }
 	}
@@ -67,7 +68,7 @@ namespace BLPP
 	public class UndefinedMacroException : Exception
 	{
 		public UndefinedMacroException() { }
-		public UndefinedMacroException(Token token) : base($"Undefined macro at line {token.Line}, col {token.Col}") { }
+		public UndefinedMacroException(Token token) : base($"Undefined macro '{token.Value}' on line {token.Line}") { }
 		public UndefinedMacroException(string message) : base(message) { }
 		public UndefinedMacroException(string message, Exception inner) : base(message, inner) { }
 	}
@@ -75,7 +76,7 @@ namespace BLPP
 	public class UndefinedMacroArgumentException : Exception
 	{
 		public UndefinedMacroArgumentException() { }
-		public UndefinedMacroArgumentException(Token token) : base($"Undefined macro argument '{token.Value}' at line {token.Line}, col {token.Col}") { }
+		public UndefinedMacroArgumentException(Token token) : base($"Undefined macro variable '{token.Value}' on line {token.Line}") { }
 		public UndefinedMacroArgumentException(string message) : base(message) { }
 		public UndefinedMacroArgumentException(string message, Exception inner) : base(message, inner) { }
 	}
