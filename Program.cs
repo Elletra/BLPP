@@ -11,14 +11,20 @@
 using BLPP.Lexer;
 using BLPP.Preprocessor;
 
-var code = File.ReadAllText("../../test.cs");
+var code = File.ReadAllText("../../test.blcs");
 var tokens = new Lexer().Scan(code);
 
 try
 {
 	new Preprocessor().Process(tokens);
+
+	foreach (var token in tokens)
+	{
+		Console.WriteLine($"{token.Value} ");
+	}
 }
 catch (Exception except)
 {
 	Console.WriteLine($"[ERROR] {except.Message}");
+	Console.WriteLine(except.StackTrace);
 }
