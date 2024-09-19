@@ -19,8 +19,8 @@ namespace BLPP.Lexer
 		ParenLeft, ParenRight, CurlyLeft, CurlyRight, SquareLeft, SquareRight,
 		Comma, Period, QuestionMark, Colon, ColonColon, Semicolon,
 		Operator, AssignOperator,
-		Directive, DirectiveArgs, DirectiveVariable, DirectiveCurlyLeft, DirectiveCurlyRight,
-		DirectiveConcat, Macro, MacroKeyword,
+		Directive, DirectiveArgs, DirectiveCurlyLeft, DirectiveCurlyRight,
+		DirectiveConcat, Macro, MacroArgument, MacroKeyword,
 	};
 
 	public class Token(TokenType type, string value, int line, int col)
@@ -30,15 +30,17 @@ namespace BLPP.Lexer
 		public int Line { get; } = line;
 		public int Col { get; } = col;
 
+		public int EndCol => Col + Value.Length;
+
 		public bool IsPreprocessorToken => Type switch
 		{
 			TokenType.Directive => true,
 			TokenType.DirectiveArgs => true,
-			TokenType.DirectiveVariable => true,
 			TokenType.DirectiveCurlyLeft => true,
 			TokenType.DirectiveCurlyRight => true,
 			TokenType.DirectiveConcat => true,
 			TokenType.Macro => true,
+			TokenType.MacroArgument => true,
 			TokenType.MacroKeyword => true,
 			_ => false,
 		};
@@ -239,8 +241,8 @@ namespace BLPP.Lexer
 				"#{" => TokenType.DirectiveCurlyLeft,
 				"#}" => TokenType.DirectiveCurlyRight,
 				"#@" => TokenType.DirectiveConcat,
-				"#%" => TokenType.DirectiveVariable,
 				"##" => TokenType.Directive,
+				"#%" => TokenType.MacroArgument,
 				"#!" => TokenType.MacroKeyword,
 				_ => TokenType.Macro,
 			}, line, col);
