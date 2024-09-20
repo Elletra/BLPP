@@ -15,8 +15,8 @@ namespace BLPP
 	public class UnexpectedTokenException : Exception
 	{
 		public UnexpectedTokenException() { }
-		public UnexpectedTokenException(string token, int line, int col) : base($"Unexpected token '{token}' at line {line}, col {col}") { }
-		public UnexpectedTokenException(string token, int line) : base($"Unexpected token '{token}' on line {line}") { }
+		public UnexpectedTokenException(string token, int line, int col) : base($"Unexpected token `{token}` at line {line}, col {col}") { }
+		public UnexpectedTokenException(string token, int line) : base($"Unexpected token `{token}` on line {line}") { }
 		public UnexpectedTokenException(char ch, int line, int col) : this($"{ch}", line, col) { }
 		public UnexpectedTokenException(Token token) : this(token.Value, token.Line) { }
 		public UnexpectedTokenException(string message) : base(message) { }
@@ -60,7 +60,8 @@ namespace BLPP
 	public class SyntaxException : Exception
 	{
 		public SyntaxException() { }
-		public SyntaxException(string message, Token token) : base($"Syntax error on line {token.Line}: {message}") { }
+		public SyntaxException(string message, int line) : base($"Syntax error on line {line}: {message}") { }
+		public SyntaxException(string message, Token token) : this(message, token.Line) { }
 		public SyntaxException(string message) : base(message) { }
 		public SyntaxException(string message, Exception inner) : base(message, inner) { }
 	}
@@ -68,7 +69,7 @@ namespace BLPP
 	public class UndefinedMacroException : Exception
 	{
 		public UndefinedMacroException() { }
-		public UndefinedMacroException(Token token) : base($"Undefined macro '{token.Value}' on line {token.Line}") { }
+		public UndefinedMacroException(Token token) : base($"Undefined macro `{token.Value}` on line {token.Line}") { }
 		public UndefinedMacroException(string message) : base(message) { }
 		public UndefinedMacroException(string message, Exception inner) : base(message, inner) { }
 	}
@@ -76,7 +77,7 @@ namespace BLPP
 	public class UndefinedMacroArgumentException : Exception
 	{
 		public UndefinedMacroArgumentException() { }
-		public UndefinedMacroArgumentException(Token token) : base($"Undefined macro variable '{token.Value}' on line {token.Line}") { }
+		public UndefinedMacroArgumentException(Token token) : base($"Undefined macro variable `{token.Value}` on line {token.Line}") { }
 		public UndefinedMacroArgumentException(string message) : base(message) { }
 		public UndefinedMacroArgumentException(string message, Exception inner) : base(message, inner) { }
 	}
