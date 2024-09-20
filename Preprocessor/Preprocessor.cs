@@ -251,63 +251,75 @@ namespace BLPP.Preprocessor
 
 		private List<List<Token>> CollectMacroArguments(MacroDefinition macroDefinition, int line)
 		{
+			if (macroDefinition.Arguments.Count <= 0)
+			{
+				return [];
+			}
+
+			if (!Match(TokenType.ParenLeft))
+			{
+				if (macroDefinition.FixedArgumentCount > 0)
+				{
+					throw new SyntaxException($"Macro '{macroDefinition.Name}' requires at least {macroDefinition.FixedArgumentCount} argument(s)", line);
+				}
+
+				return [];
+			}
+
 			var args = new List<List<Token>>();
 
-			if (macroDefinition.Arguments.Count > 0)
+			Expect(TokenType.ParenLeft);
+
+			var parentheses = 1;
+			var argIndex = 0;
+
+			/* Collect argument tokens. */
+
+			while (parentheses > 0)
 			{
-				Expect(TokenType.ParenLeft);
+				var token = Peek();
+				var type = token.Type;
 
-				var parentheses = 1;
-				var argIndex = 0;
-
-				/* Collect argument tokens. */
-
-				while (parentheses > 0)
+				if (type == TokenType.ParenLeft)
 				{
-					var token = Peek();
-					var type = token.Type;
+					parentheses++;
+				}
+				else if (type == TokenType.ParenRight)
+				{
+					parentheses--;
+				}
 
-					if (type == TokenType.ParenLeft)
+				if (parentheses > 0)
+				{
+					Advance();
+
+					if (parentheses == 1 && type == TokenType.Comma)
 					{
-						parentheses++;
+						argIndex++;
 					}
-					else if (type == TokenType.ParenRight)
+					else
 					{
-						parentheses--;
-					}
-
-					if (parentheses > 0)
-					{
-						Advance();
-
-						if (parentheses == 1 && type == TokenType.Comma)
+						if (argIndex >= args.Count)
 						{
-							argIndex++;
+							args.Add([]);
 						}
-						else
-						{
-							if (argIndex >= args.Count)
-							{
-								args.Add([]);
-							}
 
-							args[argIndex].Add(new(token, line));
-						}
+						args[argIndex].Add(new(token, line));
 					}
 				}
-
-				if (args.Count < macroDefinition.FixedArgumentCount)
-				{
-					throw new SyntaxException($"Not enough arguments passed into '{macroDefinition.Name}' macro", line);
-				}
-
-				if (args.Count > macroDefinition.FixedArgumentCount && !macroDefinition.IsVariadic)
-				{
-					throw new SyntaxException($"Too many arguments passed into '{macroDefinition.Name}' macro", line);
-				}
-
-				Expect(TokenType.ParenRight);
 			}
+
+			if (args.Count < macroDefinition.FixedArgumentCount)
+			{
+				throw new SyntaxException($"Not enough arguments passed into '{macroDefinition.Name}' macro", line);
+			}
+
+			if (args.Count > macroDefinition.FixedArgumentCount && !macroDefinition.IsVariadic)
+			{
+				throw new SyntaxException($"Too many arguments passed into '{macroDefinition.Name}' macro", line);
+			}
+
+			Expect(TokenType.ParenRight);
 
 			return args;
 		}
