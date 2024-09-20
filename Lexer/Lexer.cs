@@ -20,7 +20,7 @@ namespace BLPP.Lexer
 		Comma, Period, QuestionMark, Colon, ColonColon, Semicolon,
 		Operator, AssignOperator,
 		Directive, DirectiveCurlyLeft, DirectiveCurlyRight,
-		DirectiveConcat, Macro, MacroArgument, MacroKeyword,
+		DirectiveConcat, Macro, MacroVarArgs, MacroArgument, MacroKeyword,
 	};
 
 	public class Token
@@ -50,6 +50,7 @@ namespace BLPP.Lexer
 			TokenType.DirectiveCurlyRight => true,
 			TokenType.DirectiveConcat => true,
 			TokenType.Macro => true,
+			TokenType.MacroVarArgs => true,
 			TokenType.MacroArgument => true,
 			TokenType.MacroKeyword => true,
 			_ => false,
@@ -63,6 +64,7 @@ namespace BLPP.Lexer
 			TokenType.Directive => false,
 			TokenType.DirectiveCurlyLeft => false,
 			TokenType.DirectiveCurlyRight => false,
+			TokenType.MacroVarArgs => false,
 			_ => true,
 		};
 	}
@@ -259,21 +261,38 @@ namespace BLPP.Lexer
 
 		private void ScanDelimiter(char ch, int line, int col)
 		{
-			AddToken(ch switch
+			TokenType type;
+
+			if (ch == '.')
 			{
-				'(' => TokenType.ParenLeft,
-				')' => TokenType.ParenRight,
-				'{' => TokenType.CurlyLeft,
-				'}' => TokenType.CurlyRight,
-				'[' => TokenType.SquareLeft,
-				']' => TokenType.SquareRight,
-				'.' => TokenType.Period,
-				',' => TokenType.Comma,
-				'?' => TokenType.QuestionMark,
-				':' => MatchAdvance(':') ? TokenType.ColonColon : TokenType.Colon,
-				';' => TokenType.Semicolon,
-				_ => throw new UnexpectedTokenException(ch, line, col),
-			}, line);
+				type = TokenType.Period;
+
+				if (Match(".."))
+				{
+					type = TokenType.MacroVarArgs;
+					Advance(amount: 2);
+				}
+			}
+			else
+			{
+				type = ch switch
+				{
+					'(' => TokenType.ParenLeft,
+					')' => TokenType.ParenRight,
+					'{' => TokenType.CurlyLeft,
+					'}' => TokenType.CurlyRight,
+					'[' => TokenType.SquareLeft,
+					']' => TokenType.SquareRight,
+					'.' => TokenType.Period,
+					',' => TokenType.Comma,
+					'?' => TokenType.QuestionMark,
+					':' => MatchAdvance(':') ? TokenType.ColonColon : TokenType.Colon,
+					';' => TokenType.Semicolon,
+					_ => throw new UnexpectedTokenException(ch, line, col),
+				};
+			}
+
+			AddToken(type, line);
 		}
 
 		private void ScanOperator(char ch, int line, int col)

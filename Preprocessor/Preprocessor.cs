@@ -16,35 +16,18 @@ namespace BLPP.Preprocessor
 	{
 		public Token NameToken { get; } = nameToken;
 		public Token MacroToken { get; } = macroToken;
-		public List<Token> Arguments { get; set; } = [];
+		public List<string> Arguments { get; set; } = [];
 		public List<Token> Body { get; } = [];
 		public HashSet<string> Macros { get; } = [];
+
+		public bool IsVariadic => Arguments[^1] == "...";
+		public int FixedArgumentCount => IsVariadic ? Arguments.Count - 1 : Arguments.Count;
 
 		public string Name => NameToken.Value;
 		public int Line => MacroToken.Line;
 
-		public bool HasArgument(string test) => Arguments.Any(arg => arg.Value == test[2..]);
-		public int ArgumentIndexOf(string strArg)
-		{
-			var index = -1;
-
-			for (var i = 0; i < Arguments.Count && index < 0; i++)
-			{
-				if (Arguments[i].Value == strArg[2..])
-				{
-					index = i;
-				}
-			}
-
-			return index;
-		}
-
-		public Token? FindArgument(string strArg)
-		{
-			var index = ArgumentIndexOf(strArg);
-
-			return index >= 0 ? Arguments[index] : null;
-		}
+		public bool HasArgument(string test) => Arguments.Any(arg => arg == test[2..]);
+		public int IndexOfArgument(string arg) => Arguments.IndexOf(arg);
 	}
 
 	public class Preprocessor
@@ -81,27 +64,13 @@ namespace BLPP.Preprocessor
 					case TokenType.DirectiveConcat
 					or TokenType.DirectiveCurlyLeft
 					or TokenType.DirectiveCurlyRight
+					or TokenType.MacroVarArgs
 					or TokenType.MacroArgument
 					or TokenType.MacroKeyword:
-						throw new SyntaxException($"'{token.Value}' can only be used in a macro definition", token);
+						throw new SyntaxException($"`{token.Value}` can only be used in a macro definition", token);
 
 					default:
 						break;
-				}
-			}
-		}
-
-		private void ExpandMacros()
-		{
-			_index = 0;
-
-			while (!IsAtEnd)
-			{
-				var token = Advance();
-
-				if (token.Type == TokenType.Macro)
-				{
-					ExpandMacro(token);
 				}
 			}
 		}
@@ -166,13 +135,18 @@ namespace BLPP.Preprocessor
 			while (!IsAtEnd && !rightParen)
 			{
 				var prev = _tokens[_index - 1];
-				var arg = Expect(TokenType.Identifier, TokenType.Keyword);
+				var arg = Expect(TokenType.Identifier, TokenType.Keyword, TokenType.MacroVarArgs);
 				var delimiter = Expect(TokenType.Comma, TokenType.ParenRight);
 
 				ExpectSameLine(prev, arg);
 				ExpectSameLine(arg, delimiter);
 
-				macro.Arguments.Add(arg);
+				if (delimiter.Type == TokenType.Comma && arg.Type == TokenType.MacroVarArgs)
+				{
+					throw new SyntaxException($"Variadic macro arguments must be at the end of the arguments list", arg);
+				}
+
+				macro.Arguments.Add(arg.Value);
 
 				rightParen = delimiter.Type == TokenType.ParenRight;
 			}
@@ -191,7 +165,7 @@ namespace BLPP.Preprocessor
 
 				if (!token.IsValidMacroBodyToken)
 				{
-					throw new SyntaxException($"'{token.Value}' cannot be used in a macro body", token);
+					throw new SyntaxException($"`{token.Value}` cannot be used in a macro body", token);
 				}
 
 				if (token.Type == TokenType.Macro)
@@ -212,70 +186,47 @@ namespace BLPP.Preprocessor
 			}
 		}
 
-		private void ExpandMacro(Token macroToken)
+		private void ExpandMacros()
 		{
-			var name = macroToken.Value[1..];
+			_index = 0;
 
-			MacroDefinition? macro;
-
-			if (!_macros.TryGetValue(name, out macro))
+			while (!IsAtEnd)
 			{
-				throw new UndefinedMacroException(macroToken);
+				var token = Advance();
+
+				if (token.Type == TokenType.Macro)
+				{
+					ExpandMacro(token);
+				}
+			}
+		}
+
+		private void ExpandMacro(Token token)
+		{
+			var name = token.Value[1..];
+
+			MacroDefinition? macroDefinition;
+
+			if (!_macros.TryGetValue(name, out macroDefinition))
+			{
+				throw new UndefinedMacroException(token);
 			}
 
 			var startIndex = _index - 1;
-			var argLine = macroToken.Line;
-			var macroArgs = CollectMacroArguments(macroToken, macro);
-			var insertTokens = new List<Token>();
-
-			foreach (var token in macro.Body)
-			{
-				var type = token.Type;
-				var value = token.Value;
-
-				switch (type)
-				{
-					case TokenType.MacroArgument:
-					{
-						foreach (var arg in macroArgs[value[2..]])
-						{
-							insertTokens.Add(new(arg, argLine));
-						}
-
-						break;
-					}
-
-					case TokenType.MacroKeyword:
-					{
-						if (value == "#!argc")
-						{
-							insertTokens.Add(new(TokenType.Number, $"{macro.Arguments.Count}", argLine));
-						}
-						else if (value == "#!line")
-						{
-							insertTokens.Add(new(TokenType.Number, $"{macroToken.Line}", argLine));
-						}
-
-						break;
-					}
-
-					default:
-						insertTokens.Add(new(token, argLine));
-						break;
-				}
-			}
+			var body = CollectMacroBody(macroDefinition, CollectMacroArguments(macroDefinition, token.Line), token.Line);
 
 			_tokens.RemoveRange(startIndex, _index - startIndex);
-			_tokens.InsertRange(startIndex, insertTokens);
+			_tokens.InsertRange(startIndex, body);
 
+			// Reset our index back to the same index we were at before so we can keep expanding macros as much as we need.
 			_index = startIndex;
 		}
 
-		private Dictionary<string, List<Token>> CollectMacroArguments(Token token, MacroDefinition macro)
+		private List<List<Token>> CollectMacroArguments(MacroDefinition macroDefinition, int line)
 		{
-			var args = new Dictionary<string, List<Token>>();
+			var args = new List<List<Token>>();
 
-			if (macro.Arguments.Count > 0)
+			if (macroDefinition.Arguments.Count > 0)
 			{
 				Expect(TokenType.ParenLeft);
 
@@ -286,14 +237,14 @@ namespace BLPP.Preprocessor
 
 				while (parentheses > 0)
 				{
-					var argToken = Peek();
-					var tokenType = argToken.Type;
+					var token = Peek();
+					var type = token.Type;
 
-					if (tokenType == TokenType.ParenLeft)
+					if (type == TokenType.ParenLeft)
 					{
 						parentheses++;
 					}
-					else if (tokenType == TokenType.ParenRight)
+					else if (type == TokenType.ParenRight)
 					{
 						parentheses--;
 					}
@@ -302,33 +253,107 @@ namespace BLPP.Preprocessor
 					{
 						Advance();
 
-						if (parentheses == 1 && tokenType == TokenType.Comma)
+						if (parentheses == 1 && type == TokenType.Comma)
 						{
 							argIndex++;
-
-							if (argIndex >= macro.Arguments.Count)
-							{
-								throw new SyntaxException($"Invalid number of arguments for macro '{macro.Name}' on line {token.Line}");
-							}
 						}
 						else
 						{
-							var argName = macro.Arguments[argIndex].Value;
-
-							if (!args.ContainsKey(argName))
+							if (argIndex >= args.Count)
 							{
-								args[argName] = [];
+								args.Add([]);
 							}
 
-							args[argName].Add(new(argToken, token.Line));
+							args[argIndex].Add(new(token, line));
 						}
 					}
+				}
+
+				if (args.Count < macroDefinition.FixedArgumentCount)
+				{
+					throw new SyntaxException($"Not enough arguments passed into '{macroDefinition.Name}' macro", line);
+				}
+
+				if (args.Count > macroDefinition.FixedArgumentCount && !macroDefinition.IsVariadic)
+				{
+					throw new SyntaxException($"Too many arguments passed into '{macroDefinition.Name}' macro", line);
 				}
 
 				Expect(TokenType.ParenRight);
 			}
 
 			return args;
+		}
+
+		private List<Token> CollectMacroBody(MacroDefinition macroDefinition, List<List<Token>> arguments, int line)
+		{
+			var tokens = new List<Token>();
+
+			foreach (var token in macroDefinition.Body)
+			{
+				var type = token.Type;
+				var value = token.Value;
+
+				switch (type)
+				{
+					case TokenType.MacroArgument:
+					{
+						foreach (var arg in arguments[macroDefinition.IndexOfArgument(value[2..])])
+						{
+							tokens.Add(new(arg, line));
+						}
+
+						break;
+					}
+
+					case TokenType.MacroKeyword:
+					{
+						if (value == "#!line")
+						{
+							tokens.Add(new(TokenType.Number, $"{line}", line));
+						}
+						else if (value == "#!vargc")
+						{
+							if (!macroDefinition.IsVariadic)
+							{
+								throw new SyntaxException($"Cannot use `{value}` in a non-variadic macro", line);
+							}
+
+							tokens.Add(new(TokenType.Number, $"{macroDefinition.Arguments.Count}", line));
+						}
+						else if (value == "#!vargs" || value == "#!vargsp")
+						{
+							if (!macroDefinition.IsVariadic)
+							{
+								throw new SyntaxException($"Cannot use `{value}` in a non-variadic macro", line);
+							}
+
+							if (value == "#!vargsp")
+							{
+								tokens.Add(new(TokenType.Comma, ",", line));
+							}
+
+							for (var i = macroDefinition.FixedArgumentCount; i < arguments.Count; i++)
+							{
+								tokens.AddRange(arguments[i]);
+
+								if (i < arguments.Count - 1)
+								{
+									tokens.Add(new(TokenType.Comma, ",", line));
+								}
+							}
+						}
+
+						break;
+					}
+
+					default:
+						tokens.Add(new(token, line));
+						break;
+				}
+			}
+
+			return tokens;
 		}
 
 		private Token Peek() => _tokens[_index];
