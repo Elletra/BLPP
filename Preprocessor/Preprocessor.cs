@@ -62,11 +62,11 @@ namespace BLPP.Preprocessor
 						ProcessDirective(token);
 						break;
 
-					case TokenType.DirectiveConcat
-					or TokenType.DirectiveCurlyLeft
+					case TokenType.DirectiveCurlyLeft
 					or TokenType.DirectiveCurlyRight
 					or TokenType.MacroVarArgs
 					or TokenType.MacroArgument
+					or TokenType.MacroConcat
 					or TokenType.MacroKeyword:
 						throw new SyntaxException($"`{token.Value}` can only be used in a macro definition", token);
 
