@@ -44,6 +44,7 @@ namespace BLPP.Preprocessor
 			_macros = [];
 
 			ProcessDirectives();
+			CheckForMacroLoops();
 			ExpandMacros();
 		}
 
@@ -183,6 +184,32 @@ namespace BLPP.Preprocessor
 			if (leftBracket)
 			{
 				Expect(TokenType.DirectiveCurlyRight);
+			}
+		}
+
+		private void CheckForMacroLoops()
+		{
+			foreach (var (_, macro) in _macros)
+			{
+				CheckForMacroLoops(macro, [], []);
+			}
+		}
+
+		private void CheckForMacroLoops(MacroDefinition check, HashSet<string> visited, List<string> path)
+		{
+			visited.Add(check.Name);
+			path.Add(check.Name);
+
+			foreach (var name in check.Macros)
+			{
+				if (visited.Contains(name))
+				{
+					var pathStr = $"'{string.Join("' -> '", path)}'";
+
+					throw new SyntaxException($"Infinite macro loop {pathStr} detected", check.Line);
+				}
+
+				CheckForMacroLoops(_macros[name], visited, path);
 			}
 		}
 
