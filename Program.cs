@@ -8,23 +8,14 @@
  * For full terms see the LICENSE file or visit https://spdx.org/licenses/BSD-3-Clause.html
  */
 
-using BLPP.Lexer;
 using BLPP.Preprocessor;
 
 var code = File.ReadAllText("../../test.blcs");
-var tokens = new Lexer().Scan(code);
+var tokens = new Lexer().Preprocess(code);
 
-try
+foreach (var token in tokens)
 {
-	new Preprocessor().Process(tokens);
+	Console.WriteLine("{0,-24} {1,-24} {2,-24}", token.Type, token.WhitespaceBefore.Length, token.Value);
+}
 
-	foreach (var token in tokens)
-	{
-		Console.WriteLine($"{token.Value} ");
-	}
-}
-catch (Exception except)
-{
-	Console.WriteLine($"[ERROR] {except.Message}");
-	Console.WriteLine(except.StackTrace);
-}
+new MacroProcessor().Process(tokens);
