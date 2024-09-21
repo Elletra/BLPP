@@ -1,4 +1,14 @@
-﻿using BLPP.Util;
+﻿/**
+ * DirectiveProcessor.cs
+ *
+ * Copyright (C) 2024 Elletra
+ *
+ * This file is part of the BLPP source code. It may be used under the BSD 3-Clause License.
+ *
+ * For full terms see the LICENSE file or visit https://spdx.org/licenses/BSD-3-Clause.html
+ */
+
+using BLPP.Util;
 
 namespace BLPP.Preprocessor
 {
@@ -7,7 +17,7 @@ namespace BLPP.Preprocessor
 		private PreprocessorTokenReader _stream = new([]);
 		private Dictionary<string, Macro> _macros = [];
 
-		public void Expand(List<Token> tokens, Dictionary<string, Macro> macros)
+		public void Process(List<Token> tokens, Dictionary<string, Macro> macros)
 		{
 			_stream = new(tokens);
 			_macros = macros;
@@ -69,6 +79,10 @@ namespace BLPP.Preprocessor
 				if (token.Type == TokenType.Macro)
 				{
 					ExpandMacro(token);
+				}
+				else if (token.Type == TokenType.Directive)
+				{
+					StripDirective(token);
 				}
 			}
 		}
@@ -223,7 +237,9 @@ namespace BLPP.Preprocessor
 								throw new SyntaxException($"Cannot use `{value}` in a non-variadic macro", line);
 							}
 
-							if (value == "#!vargsp")
+							var prependComma = value == "#!vargsp";
+
+							if (prependComma)
 							{
 								body.Add(new(TokenType.Comma, ",", line, whitespace));
 							}
@@ -232,7 +248,7 @@ namespace BLPP.Preprocessor
 							{
 								if (i == macro.FixedArgumentCount && args[i].Count > 0)
 								{
-									args[i][0].WhitespaceBefore = whitespace;
+									args[i][0].WhitespaceBefore = prependComma ? " " : whitespace;
 								}
 
 								body.AddRange(args[i]);
@@ -254,6 +270,53 @@ namespace BLPP.Preprocessor
 			}
 
 			return body;
+		}
+
+		private void StripDirective(Token token)
+		{
+			var startIndex = _stream.Index - 1;
+
+			if (token.Value == "##use")
+			{
+				_stream.Advance();
+			}
+			else if (token.Value == "##define")
+			{
+				var name = _stream.Consume(TokenType.Identifier);
+				var macro = _macros[name.Value];
+
+				if (macro.Arguments.Count > 0)
+				{
+					/* Skip past parameter list. */
+
+					while (!_stream.IsAtEnd && !_stream.AdvanceIfMatch(TokenType.ParenRight))
+					{
+						_stream.Advance();
+					}
+				}
+
+				var brackets = _stream.Match(TokenType.DirectiveCurlyLeft);
+
+				while (!_stream.IsAtEnd)
+				{
+					/* Skip past macro body. */
+
+					if ((brackets && _stream.AdvanceIfMatch(TokenType.DirectiveCurlyRight)) || (!brackets && !_stream.MatchLine(token)))
+					{
+						break;
+					}
+
+					_stream.Advance();
+				}
+			}
+			else
+			{
+				throw new SyntaxException($"Unknown or unsupported preprocessor directive '{token.Value}'", token);
+			}
+
+			// Strip out the directive.
+			_stream.Remove(startIndex, _stream.Index - startIndex);
+			_stream.Seek(startIndex);
 		}
 
 		private void ApplyConcatenation()
