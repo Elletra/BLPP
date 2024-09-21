@@ -29,7 +29,7 @@ namespace BLPP.Preprocessor
 	/// <summary>
 	/// This class parses directives, validates them, strips them out, and then returns all the macros in a dictionary.
 	/// </summary>
-	public class DirectiveProcessor
+	public class DirectiveParser
 	{
 		private PreprocessorTokenReader _stream = new([]);
 		private Dictionary<string, Macro> _macros = [];
@@ -63,7 +63,7 @@ namespace BLPP.Preprocessor
 				}
 				else if (token.Value == "##macros")
 				{
-					throw new NotImplementedException();
+					ProcessMacros(token);
 				}
 				else
 				{
@@ -193,6 +193,11 @@ namespace BLPP.Preprocessor
 			{
 				_stream.Consume(TokenType.DirectiveCurlyRight);
 			}
+		}
+
+		private void ProcessImport()
+		{
+
 		}
 
 		private void ValidateMacros()
