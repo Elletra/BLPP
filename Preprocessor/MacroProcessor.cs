@@ -61,7 +61,7 @@ namespace BLPP.Preprocessor
 				{
 					ProcessDefine(token);
 				}
-				else if (token.Value == "##include")
+				else if (token.Value == "##macros")
 				{
 					throw new NotImplementedException();
 				}
