@@ -71,12 +71,12 @@ namespace BLPP.Preprocessor
 	/// </summary>
 	public class Lexer
 	{
-		private TextStreamReader _stream;
+		private TextStreamReader _stream = new("");
 		private int _line = 1;
 		private string _whitespace = "";
 		private List<Token> _tokens = [];
 
-		public List<Token> Preprocess(string code)
+		public List<Token> Scan(string code)
 		{
 			_stream = new(code);
 			_line = 1;
