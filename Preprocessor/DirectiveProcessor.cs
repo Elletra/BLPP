@@ -27,9 +27,9 @@ namespace BLPP.Preprocessor
 	}
 
 	/// <summary>
-	/// This class parses macro definitions, validates them, strips out directives, and then returns them in a dictionary.
+	/// This class parses directives, validates them, strips them out, and then returns all the macros in a dictionary.
 	/// </summary>
-	public class MacroProcessor
+	public class DirectiveProcessor
 	{
 		private PreprocessorTokenReader _stream = new([]);
 		private Dictionary<string, Macro> _macros = [];

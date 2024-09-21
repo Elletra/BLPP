@@ -13,7 +13,7 @@ using BLPP.Preprocessor;
 var code = File.ReadAllText("../../test.blcs");
 var tokens = new Lexer().Preprocess(code);
 
-new MacroExpander().Expand(tokens, new MacroProcessor().Process(tokens));
+new MacroExpander().Expand(tokens, new DirectiveProcessor().Process(tokens));
 
 var line = tokens.Count > 0 ? tokens[0].Line : 1;
 
