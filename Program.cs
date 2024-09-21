@@ -10,10 +10,17 @@
 
 using BLPP.Preprocessor;
 
-var code = File.ReadAllText("../../test.blcs");
-var tokens = new Lexer().Preprocess(code);
+var filePath = "../../test.blcs";
+var code = File.ReadAllText(filePath);
 
-new DirectiveProcessor().Expand(tokens, new DirectiveParser().Parse(tokens));
+var lexer = new Lexer();
+var parser = new DirectiveParser();
+var processor = new DirectiveProcessor();
+
+var tokens = lexer.Scan(code);
+var data = parser.Parse(tokens);
+
+processor.Process(tokens, data.Macros);
 
 var line = 1;
 
