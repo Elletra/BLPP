@@ -19,7 +19,7 @@ namespace BLPP.Preprocessor
 		Punctuation,
 		ParenLeft, ParenRight, Comma,
 		Directive, DirectiveCurlyLeft, DirectiveCurlyRight,
-		Macro, MacroVarArgs, MacroArgument, MacroConcat, MacroKeyword,
+		Macro, MacroVarArgs, MacroParameter, MacroConcat, MacroKeyword,
 		Invalid,
 	}
 
@@ -46,6 +46,19 @@ namespace BLPP.Preprocessor
 			TokenType.MacroVarArgs => false,
 			TokenType.Invalid => false,
 			_ => true,
+		};
+
+		public bool IsPreprocessorToken => Type switch
+		{
+			TokenType.Directive => true,
+			TokenType.DirectiveCurlyLeft => true,
+			TokenType.DirectiveCurlyRight => true,
+			TokenType.Macro => true,
+			TokenType.MacroVarArgs => true,
+			TokenType.MacroParameter => true,
+			TokenType.MacroConcat => true,
+			TokenType.MacroKeyword => true,
+			_ => false,
 		};
 	}
 
@@ -178,7 +191,7 @@ namespace BLPP.Preprocessor
 				"#{" => TokenType.DirectiveCurlyLeft,
 				"#}" => TokenType.DirectiveCurlyRight,
 				"##" => TokenType.Directive,
-				"#%" => TokenType.MacroArgument,
+				"#%" => TokenType.MacroParameter,
 				"#@" => TokenType.MacroConcat,
 				"#!" => TokenType.MacroKeyword,
 				_ => TokenType.Macro,
