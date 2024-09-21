@@ -38,6 +38,8 @@ namespace BLPP.Util
 
 			return true;
 		}
+
+		public void Rewind() => Seek(0);
 	}
 
 	public class TextStreamReader : StreamReader<char>
