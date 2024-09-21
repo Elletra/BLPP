@@ -12,8 +12,52 @@ namespace BLPP.Preprocessor
 			_stream = new(tokens);
 			_macros = macros;
 
+			ValidateMacros();
 			ExpandMacros();
 			ApplyConcatenation();
+		}
+
+		private void ValidateMacros()
+		{
+			foreach (var (_, macro) in _macros)
+			{
+				ValidateMacroBody(macro);
+				CheckForMacroLoops(macro, [], []);
+			}
+		}
+
+		private void CheckForMacroLoops(Macro check, HashSet<string> visited, List<string> path)
+		{
+			visited.Add(check.Name);
+			path.Add(check.Name);
+
+			foreach (var name in check.Macros)
+			{
+				if (visited.Contains(name))
+				{
+					var pathStr = $"'{string.Join("' -> '", path)}'";
+
+					throw new SyntaxException($"Infinite macro recursion {pathStr}", check.Line);
+				}
+
+				CheckForMacroLoops(_macros[name], visited, path);
+			}
+		}
+
+		private void ValidateMacroBody(Macro macro)
+		{
+			foreach (var token in macro.Body)
+			{
+				if (token.Type == TokenType.Macro && !_macros.ContainsKey(token.MacroName))
+				{
+					throw new UndefinedMacroException(token);
+				}
+
+				if (token.Type == TokenType.MacroParameter && !macro.HasArgument(token.Value))
+				{
+					throw new UndefinedMacroParameterException(token);
+				}
+			}
 		}
 
 		private void ExpandMacros()

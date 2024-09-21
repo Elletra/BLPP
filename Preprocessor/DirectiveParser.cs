@@ -27,43 +27,42 @@ namespace BLPP.Preprocessor
 	}
 
 	/// <summary>
-	/// This class parses directives, validates them, strips them out, and then returns all the macros in a dictionary.
+	/// This class parses directives, strips them out, and then returns macros and file names to import.
 	/// </summary>
 	public class DirectiveParser
 	{
 		private PreprocessorTokenReader _stream = new([]);
 		private Dictionary<string, Macro> _macros = [];
 
-		public Dictionary<string, Macro> Process(List<Token> tokens)
+		public Dictionary<string, Macro> Parse(List<Token> tokens)
 		{
 			_stream = new(tokens);
 			_macros = [];
 
-			CollectMacros();
-			ValidateMacros();
+			ParseMacros();
 
 			return _macros;
 		}
 
-		private void CollectMacros()
+		private void ParseMacros()
 		{
 			while (!_stream.IsAtEnd)
 			{
-				Process(_stream.Read());
+				Parse(_stream.Read());
 			}
 		}
 
-		private void Process(Token token)
+		private void Parse(Token token)
 		{
 			if (token.Type == TokenType.Directive)
 			{
 				if (token.Value == "##define")
 				{
-					ProcessDefine(token);
+					ParseDefine(token);
 				}
 				else if (token.Value == "##macros")
 				{
-					ProcessMacros(token);
+					throw new NotImplementedException();
 				}
 				else
 				{
@@ -72,7 +71,7 @@ namespace BLPP.Preprocessor
 			}
 		}
 
-		private void ProcessDefine(Token define)
+		private void ParseDefine(Token define)
 		{
 			var startIndex = _stream.Index - 1;
 			var name = _stream.Consume(TokenType.Identifier);
@@ -88,7 +87,7 @@ namespace BLPP.Preprocessor
 			if (_stream.Match(TokenType.ParenLeft))
 			{
 				ExpectSameLine(name, _stream.Read());
-				ProcessDefineArgs(macro);
+				ParseDefineArgs(macro);
 			}
 
 			var brackets = _stream.Match(TokenType.DirectiveCurlyLeft);
@@ -103,7 +102,7 @@ namespace BLPP.Preprocessor
 				}
 			}
 
-			ProcessDefineBody(macro, brackets);
+			ParseDefineBody(macro, brackets);
 
 			if (!brackets && macro.Body.Count <= 0)
 			{
@@ -121,7 +120,7 @@ namespace BLPP.Preprocessor
 			_stream.Remove(startIndex, _stream.Index - startIndex);
 		}
 
-		private void ProcessDefineArgs(Macro macro)
+		private void ParseDefineArgs(Macro macro)
 		{
 			while (!_stream.IsAtEnd)
 			{
@@ -154,7 +153,7 @@ namespace BLPP.Preprocessor
 			}
 		}
 
-		private void ProcessDefineBody(Macro macro, bool brackets)
+		private void ParseDefineBody(Macro macro, bool brackets)
 		{
 			while (!_stream.IsAtEnd)
 			{
@@ -192,54 +191,6 @@ namespace BLPP.Preprocessor
 			if (brackets)
 			{
 				_stream.Consume(TokenType.DirectiveCurlyRight);
-			}
-		}
-
-		private void ProcessImport()
-		{
-
-		}
-
-		private void ValidateMacros()
-		{
-			foreach (var (_, macro) in _macros)
-			{
-				ValidateMacroBody(macro);
-				CheckForMacroLoops(macro, [], []);
-			}
-		}
-
-		private void CheckForMacroLoops(Macro check, HashSet<string> visited, List<string> path)
-		{
-			visited.Add(check.Name);
-			path.Add(check.Name);
-
-			foreach (var name in check.Macros)
-			{
-				if (visited.Contains(name))
-				{
-					var pathStr = $"'{string.Join("' -> '", path)}'";
-
-					throw new SyntaxException($"Infinite macro recursion {pathStr}", check.Line);
-				}
-
-				CheckForMacroLoops(_macros[name], visited, path);
-			}
-		}
-
-		private void ValidateMacroBody(Macro macro)
-		{
-			foreach (var token in macro.Body)
-			{
-				if (token.Type == TokenType.Macro && !_macros.ContainsKey(token.MacroName))
-				{
-					throw new UndefinedMacroException(token);
-				}
-
-				if (token.Type == TokenType.MacroParameter && !macro.HasArgument(token.Value))
-				{
-					throw new UndefinedMacroParameterException(token);
-				}
 			}
 		}
 
