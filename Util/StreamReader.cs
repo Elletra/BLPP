@@ -27,11 +27,16 @@ namespace BLPP.Util
 		public void Advance(int amount = 1) => Index += amount;
 		public T Peek(int offset = 0) => _stream[Index + offset];
 
-		public bool Seek(int value, bool relative = true)
+		public bool Seek(int seekIndex)
 		{
-			int seekIndex = relative ? Index + value : value;
+			if (!IsValidIndex(seekIndex))
+			{
+				return false;
+			}
 
-			return IsValidIndex(seekIndex);
+			Index = seekIndex;
+
+			return true;
 		}
 	}
 
