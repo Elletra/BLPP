@@ -186,14 +186,32 @@ namespace BLPP.Preprocessor
 				}
 
 				var token = _stream.Read();
+				var value = token.Value;
 
-				if (token.Type == TokenType.Macro)
+				switch (token.Type)
 				{
-					macro.Macros.Add(token.MacroName);
-				}
-				else if (token.Type == TokenType.MacroParameter && !macro.HasArgument(token.Value))
-				{
-					throw new UndefinedMacroParameterException(token);
+					case TokenType.Macro:
+						macro.Macros.Add(token.MacroName);
+						break;
+
+					case TokenType.MacroParameter:
+						if (!macro.HasArgument(value))
+						{
+							throw new UndefinedMacroParameterException(token);
+						}
+
+						break;
+
+					case TokenType.MacroKeyword:
+						if (token.IsVariadicMacroKeyword && !macro.IsVariadic)
+						{
+							throw new SyntaxException($"Cannot use '{value}' in a non-variadic macro", token);
+						}
+
+						break;
+
+					default:
+						break;
 				}
 
 				macro.Body.Add(token);
