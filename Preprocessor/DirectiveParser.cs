@@ -20,7 +20,7 @@ namespace BLPP.Preprocessor
 		public readonly List<Token> Body = [];
 		public readonly HashSet<string> Macros = [];
 
-		public bool IsVariadic => Arguments[^1] == Token.MACRO_VAR_ARGS_STRING;
+		public bool IsVariadic => Arguments[^1] == Constants.Tokens.MACRO_VAR_ARGS;
 		public int FixedArgumentCount => IsVariadic ? Arguments.Count - 1 : Arguments.Count;
 
 		public bool HasArgument(string arg) => Arguments.Contains(arg[2..]);
@@ -57,7 +57,7 @@ namespace BLPP.Preprocessor
 	}
 
 	/// <summary>
-	/// This class parses directives, strips them out, and then returns macros and file names to import.
+	/// This class parses directives and then returns macros and file names to import.
 	/// </summary>
 	public class DirectiveParser
 	{
@@ -86,11 +86,11 @@ namespace BLPP.Preprocessor
 		{
 			if (token.Type == TokenType.Directive)
 			{
-				if (token.Value == "##define")
+				if (token.Value == Constants.Tokens.DIRECTIVE_DEFINE)
 				{
 					ParseDefine(token);
 				}
-				else if (token.Value == "##use")
+				else if (token.Value == Constants.Tokens.DIRECTIVE_USE)
 				{
 					ParseUse(token);
 				}
@@ -162,7 +162,7 @@ namespace BLPP.Preprocessor
 					break;
 				}
 
-				// Advance past delimiter
+				// Advance past delimiter.
 				_stream.Advance();
 			}
 
@@ -170,7 +170,7 @@ namespace BLPP.Preprocessor
 
 			for (var i = 0; i < macro.Arguments.Count; i++)
 			{
-				if (macro.Arguments[i] == Token.MACRO_VAR_ARGS_STRING && i != macro.Arguments.Count - 1)
+				if (macro.Arguments[i] == Constants.Tokens.MACRO_VAR_ARGS && i != macro.Arguments.Count - 1)
 				{
 					throw new SyntaxException($"Variadic macro parameters must be at the end of a parameter list", macro.Line);
 				}
@@ -188,21 +188,9 @@ namespace BLPP.Preprocessor
 
 				var token = _stream.Read();
 
-				if (!token.IsValidMacroBodyToken)
-				{
-					throw new SyntaxException($"`{token.Value}` cannot be used in a macro body", token);
-				}
-
 				if (token.Type == TokenType.Macro)
 				{
-					var name = token.MacroName;
-
-					if (name == macro.Name)
-					{
-						throw new SyntaxException($"Macro '{name}' cannot invoke itself", token.Line);
-					}
-
-					macro.Macros.Add(name);
+					macro.Macros.Add(token.MacroName);
 				}
 				else if (token.Type == TokenType.MacroParameter && !macro.HasArgument(token.Value))
 				{

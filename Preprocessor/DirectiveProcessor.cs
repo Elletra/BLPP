@@ -58,12 +58,19 @@ namespace BLPP.Preprocessor
 		{
 			foreach (var token in macro.Body)
 			{
-				if (token.Type == TokenType.Macro && !_macros.ContainsKey(token.MacroName))
+				if (token.Type == TokenType.Macro)
 				{
-					throw new UndefinedMacroException(token);
-				}
+					if (!_macros.ContainsKey(token.MacroName))
+					{
+						throw new UndefinedMacroException(token);
+					}
 
-				if (token.Type == TokenType.MacroParameter && !macro.HasArgument(token.Value))
+					if (token.MacroName == macro.Name)
+					{
+						throw new SyntaxException($"Macro '{macro.Name}' cannot invoke itself", token.Line);
+					}
+				}
+				else if (token.Type == TokenType.MacroParameter && !macro.HasArgument(token.Value))
 				{
 					throw new UndefinedMacroParameterException(token);
 				}
@@ -217,11 +224,11 @@ namespace BLPP.Preprocessor
 
 					case TokenType.MacroKeyword:
 					{
-						if (value == "#!line")
+						if (value == Constants.Tokens.MACRO_KEYWORD_LINE)
 						{
 							body.Add(new(TokenType.Number, $"{line}", line, whitespace));
 						}
-						else if (value == "#!vargc")
+						else if (value == Constants.Tokens.MACRO_KEYWORD_VARG_COUNT)
 						{
 							if (!macro.IsVariadic)
 							{
@@ -230,14 +237,14 @@ namespace BLPP.Preprocessor
 
 							body.Add(new(TokenType.Number, $"{macro.FixedArgumentCount - args.Count}", line, whitespace));
 						}
-						else if (value == "#!vargs" || value == "#!vargsp")
+						else if (value == Constants.Tokens.MACRO_KEYWORD_VARGS || value == Constants.Tokens.MACRO_KEYWORD_VARGS_PREPEND)
 						{
 							if (!macro.IsVariadic)
 							{
 								throw new SyntaxException($"Cannot use `{value}` in a non-variadic macro", line);
 							}
 
-							var prependComma = value == "#!vargsp";
+							var prependComma = value == Constants.Tokens.MACRO_KEYWORD_VARGS_PREPEND;
 
 							if (prependComma)
 							{
@@ -264,6 +271,11 @@ namespace BLPP.Preprocessor
 					}
 
 					default:
+						if (!token.IsValidMacroBodyToken)
+						{
+							throw new UnexpectedTokenException(token);
+						}
+
 						body.Add(new(token, line));
 						break;
 				}
@@ -276,11 +288,11 @@ namespace BLPP.Preprocessor
 		{
 			var startIndex = _stream.Index - 1;
 
-			if (token.Value == "##use")
+			if (token.Value == Constants.Tokens.DIRECTIVE_USE)
 			{
 				_stream.Advance();
 			}
-			else if (token.Value == "##define")
+			else if (token.Value == Constants.Tokens.DIRECTIVE_DEFINE)
 			{
 				var name = _stream.Consume(TokenType.Identifier);
 				var macro = _macros[name.Value];

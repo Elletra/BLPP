@@ -25,8 +25,6 @@ namespace BLPP.Preprocessor
 
 	public class Token(TokenType type, string value, int line, string whitespaceBefore = "")
 	{
-		public const string MACRO_VAR_ARGS_STRING = "...";
-
 		public TokenType Type { get; } = type;
 		public string Value { get; } = value;
 		public int Line { get; } = line;
