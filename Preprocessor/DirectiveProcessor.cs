@@ -17,14 +17,16 @@ namespace BLPP.Preprocessor
 		private PreprocessorTokenReader _stream = new([]);
 		private Dictionary<string, Macro> _macros = [];
 
-		public void Process(List<Token> tokens, Dictionary<string, Macro> macros)
+		public List<Token> Process(List<Token> tokens, Dictionary<string, Macro> macros)
 		{
-			_stream = new(tokens);
+			_stream = new([..tokens]);
 			_macros = macros;
 
 			ValidateMacros();
 			ExpandMacros();
 			ApplyConcatenation();
+
+			return _stream.Stream;
 		}
 
 		private void ValidateMacros()
@@ -125,7 +127,7 @@ namespace BLPP.Preprocessor
 			_stream.Remove(startIndex, _stream.Index - startIndex);
 			_stream.Insert(startIndex, body);
 
-			// Reset our index back to the same index we were at before so we can keep expanding macros as much as we need.
+			// Reset our index back to the same one we started at so we can keep expanding macros as much as we need.
 			_stream.Seek(startIndex);
 		}
 

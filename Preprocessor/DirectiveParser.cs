@@ -162,7 +162,6 @@ namespace BLPP.Preprocessor
 					break;
 				}
 
-				// Advance past delimiter.
 				_stream.Advance();
 			}
 
