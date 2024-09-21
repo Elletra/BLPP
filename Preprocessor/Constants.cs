@@ -12,7 +12,7 @@
 			public const string MACRO_KEYWORD_LINE = "#!line";
 			public const string MACRO_KEYWORD_VARG_COUNT = "#!vargc";
 			public const string MACRO_KEYWORD_VARGS = "#!vargs";
-			public const string MACRO_KEYWORD_VARGS_PREPEND = "#!vargs";
+			public const string MACRO_KEYWORD_VARGS_PREPEND = "#!vargsp";
 		}
 	}
 }
