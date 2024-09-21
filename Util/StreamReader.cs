@@ -14,18 +14,18 @@ namespace BLPP.Util
 {
 	public class StreamReader<T>(List<T> stream)
 	{
-		protected List<T> _stream = stream;
+		public List<T> Stream { get; protected set; } = stream;
 		public int Index { get; protected set; } = 0;
 
-		public int Length => _stream.Count;
-		public bool IsAtEnd => Index >= _stream.Count;
+		public int Length => Stream.Count;
+		public bool IsAtEnd => Index >= Stream.Count;
 
-		public bool IsValidIndex(int index) => index >= 0 && index < _stream.Count;
+		public bool IsValidIndex(int index) => index >= 0 && index < Stream.Count;
 		public bool IsValidOffset(int offset) => IsValidIndex(Index + offset);
 
-		public T Read() => _stream[Index++];
+		public T Read() => Stream[Index++];
 		public void Advance(int amount = 1) => Index += amount;
-		public T Peek(int offset = 0) => _stream[Index + offset];
+		public T Peek(int offset = 0) => Stream[Index + offset];
 
 		public bool Seek(int seekIndex)
 		{
@@ -83,7 +83,7 @@ namespace BLPP.Util
 			{
 				if (IsAtEnd)
 				{
-					throw new UnexpectedEndOfCodeException(_stream[^1]);
+					throw new UnexpectedEndOfCodeException(Stream[^1]);
 				}
 
 				throw new UnexpectedTokenException(Peek());
@@ -91,5 +91,7 @@ namespace BLPP.Util
 
 			return advance ? Read() : Peek();
 		}
+		public void Insert(int index, IEnumerable<Token> tokens) => Stream.InsertRange(index, tokens);
+		public void Remove(int index, int count) => Stream.RemoveRange(index, count);
 	}
 }
