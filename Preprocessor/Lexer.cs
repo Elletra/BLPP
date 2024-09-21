@@ -62,6 +62,14 @@ namespace BLPP.Preprocessor
 			TokenType.MacroKeyword => true,
 			_ => false,
 		};
+
+		public bool IsVariadicMacroKeyword => Type == TokenType.MacroKeyword && Value switch
+		{
+			Constants.Tokens.MACRO_KEYWORD_VARG_COUNT => true,
+			Constants.Tokens.MACRO_KEYWORD_VARGS => true,
+			Constants.Tokens.MACRO_KEYWORD_VARGS_PREPEND => true,
+			_ => false,
+		};
 	}
 
 	/// <summary>
