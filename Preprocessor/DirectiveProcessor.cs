@@ -2,7 +2,7 @@
 
 namespace BLPP.Preprocessor
 {
-	public class MacroExpander
+	public class DirectiveProcessor
 	{
 		private PreprocessorTokenReader _stream = new([]);
 		private Dictionary<string, Macro> _macros = [];
