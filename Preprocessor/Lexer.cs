@@ -33,6 +33,8 @@ namespace BLPP.Preprocessor
 		public string WhitespaceBefore { get; } = whitespaceBefore;
 
 		public bool IsValid => Type < TokenType.Invalid;
+		public string MacroName => Type == TokenType.Macro ? Value[1..] : Value;
+		public string ParameterName => Type == TokenType.MacroParameter ? Value[2..] : Value;
 		public bool HasWhitespaceBefore => WhitespaceBefore.Length > 0;
 
 		/// <summary>

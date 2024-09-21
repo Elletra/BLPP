@@ -160,7 +160,7 @@ namespace BLPP.Preprocessor
 
 				if (token.Type == TokenType.Macro)
 				{
-					var name = token.Value[1..];
+					var name = token.MacroName;
 
 					if (name == macro.Name)
 					{
@@ -214,7 +214,7 @@ namespace BLPP.Preprocessor
 		{
 			foreach (var token in macro.Body)
 			{
-				if (token.Type == TokenType.Macro && !_macros.ContainsKey(token.Value[1..]))
+				if (token.Type == TokenType.Macro && !_macros.ContainsKey(token.MacroName))
 				{
 					throw new UndefinedMacroException(token);
 				}
