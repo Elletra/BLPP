@@ -27,7 +27,7 @@ namespace BLPP.Preprocessor
 	}
 
 	/// <summary>
-	/// This class parses macro definitions, validates them, and then returns them in a dictionary.
+	/// This class parses macro definitions, validates them, strips out directives, and then returns them in a dictionary.
 	/// </summary>
 	public class MacroProcessor
 	{
@@ -74,6 +74,7 @@ namespace BLPP.Preprocessor
 
 		private void ProcessDefine(Token define)
 		{
+			var startIndex = _stream.Index - 1;
 			var name = _stream.Consume(TokenType.Identifier);
 			var macro = new Macro(name.Value, define.Line);
 
@@ -109,7 +110,15 @@ namespace BLPP.Preprocessor
 				throw new UnexpectedEndOfLineException(define);
 			}
 
+			if (macro.Body.Count > 0)
+			{
+				macro.Body[0].WhitespaceBefore = "";
+			}
+
 			_macros[macro.Name] = macro;
+
+			// Strip out macro definition.
+			_stream.Remove(startIndex, _stream.Index - startIndex);
 		}
 
 		private void ProcessDefineArgs(Macro macro)
