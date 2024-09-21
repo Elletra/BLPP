@@ -38,5 +38,9 @@ namespace BLPP
 
 	public class UndefinedMacroException(Token token) : Exception($"Undefined macro `{token.MacroName}` on line {token.Line}") { }
 	public class UndefinedMacroParameterException(Token token) : Exception($"Undefined macro parameter `{token.ParameterName}` on line {token.Line}") { }
-	public class MultipleDefinitionsException(Token token) : Exception($"Multiple definitions for `{token.Value}` macro (line {token.Line})") { }
+	public class MultipleDefinitionsException(string name) : Exception($"Found multiple macro definitions for '{name}'")
+	{
+		public MultipleDefinitionsException(Token token) : this(token.Value) { }
+		public MultipleDefinitionsException(Macro macro) : this(macro.Name) { }
+	}
 }
