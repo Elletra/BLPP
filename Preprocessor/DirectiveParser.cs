@@ -1,5 +1,5 @@
 ﻿/**
- * MacroProcessor.cs
+ * DirectiveParser.cs
  *
  * Copyright (C) 2024 Elletra
  *
@@ -26,22 +26,52 @@ namespace BLPP.Preprocessor
 		public bool HasArgument(string arg) => Arguments.Contains(arg[2..]);
 	}
 
+	public class DirectiveData
+	{
+		public readonly Dictionary<string, Macro> Macros = [];
+		public readonly HashSet<string> Files = [];
+
+		public bool AddMacro(Macro macro)
+		{
+			if (Macros.ContainsKey(macro.Name))
+			{
+				return false;
+			}
+
+			Macros[macro.Name] = macro;
+
+			return true;
+		}
+
+		public bool AddFile(string fileName)
+		{
+			if (Files.Contains(fileName))
+			{
+				return false;
+			}
+
+			Files.Add(fileName);
+
+			return true;
+		}
+	}
+
 	/// <summary>
 	/// This class parses directives, strips them out, and then returns macros and file names to import.
 	/// </summary>
 	public class DirectiveParser
 	{
 		private PreprocessorTokenReader _stream = new([]);
-		private Dictionary<string, Macro> _macros = [];
+		private DirectiveData _data = new();
 
-		public Dictionary<string, Macro> Parse(List<Token> tokens)
+		public DirectiveData Parse(List<Token> tokens)
 		{
 			_stream = new(tokens);
-			_macros = [];
+			_data = new();
 
 			ParseMacros();
 
-			return _macros;
+			return _data;
 		}
 
 		private void ParseMacros()
@@ -60,9 +90,9 @@ namespace BLPP.Preprocessor
 				{
 					ParseDefine(token);
 				}
-				else if (token.Value == "##macros")
+				else if (token.Value == "##use")
 				{
-					throw new NotImplementedException();
+					ParseUse(token);
 				}
 				else
 				{
@@ -73,13 +103,12 @@ namespace BLPP.Preprocessor
 
 		private void ParseDefine(Token define)
 		{
-			var startIndex = _stream.Index - 1;
 			var name = _stream.Consume(TokenType.Identifier);
 			var macro = new Macro(name.Value, define.Line);
 
 			ExpectSameLine(define, name);
 
-			if (_macros.ContainsKey(name.Value))
+			if (!_data.AddMacro(macro))
 			{
 				throw new MultipleDefinitionsException(name);
 			}
@@ -113,11 +142,6 @@ namespace BLPP.Preprocessor
 			{
 				macro.Body[0].WhitespaceBefore = "";
 			}
-
-			_macros[macro.Name] = macro;
-
-			// Strip out macro definition.
-			_stream.Remove(startIndex, _stream.Index - startIndex);
 		}
 
 		private void ParseDefineArgs(Macro macro)
@@ -138,7 +162,7 @@ namespace BLPP.Preprocessor
 					break;
 				}
 
-				// Consume delimiter
+				// Advance past delimiter
 				_stream.Advance();
 			}
 
@@ -157,7 +181,7 @@ namespace BLPP.Preprocessor
 		{
 			while (!_stream.IsAtEnd)
 			{
-				if ((brackets && _stream.Match(TokenType.DirectiveCurlyRight)) || (!brackets && _stream.Peek().Line > macro.Line))
+				if ((brackets && _stream.Match(TokenType.DirectiveCurlyRight)) || (!brackets && !_stream.MatchLine(macro.Line)))
 				{
 					break;
 				}
@@ -194,11 +218,25 @@ namespace BLPP.Preprocessor
 			}
 		}
 
-		private void ExpectSameLine(Token token1, Token token2)
+		private void ParseUse(Token token)
 		{
-			if (token1.Line < token2.Line)
+			var name = _stream.Consume(TokenType.String);
+
+			ExpectSameLine(token, name);
+
+			if (_stream.MatchLine(token))
 			{
-				throw new UnexpectedEndOfLineException(token1);
+				throw new UnexpectedTokenException(_stream.Peek());
+			}
+
+			_data.AddFile(name.Value);
+		}
+
+		private void ExpectSameLine(Token baseToken, Token testToken)
+		{
+			if (baseToken.Line != testToken.Line)
+			{
+				throw new UnexpectedEndOfLineException(baseToken);
 			}
 		}
 	}
