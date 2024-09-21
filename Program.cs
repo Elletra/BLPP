@@ -15,7 +15,7 @@ var tokens = new Lexer().Preprocess(code);
 
 new MacroExpander().Expand(tokens, new DirectiveProcessor().Process(tokens));
 
-var line = tokens.Count > 0 ? tokens[0].Line : 1;
+var line = 1;
 
 foreach (var token in tokens)
 {
@@ -25,4 +25,6 @@ foreach (var token in tokens)
 	}
 
 	Console.Write($"{token.WhitespaceBefore}{token.Value}");
+
+	line = token.Line;
 }
