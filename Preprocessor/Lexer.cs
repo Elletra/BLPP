@@ -64,6 +64,9 @@ namespace BLPP.Preprocessor
 		};
 	}
 
+	/// <summary>
+	/// This class converts a string of code into tokens for the preprocessor to use.
+	/// </summary>
 	public class Lexer
 	{
 		private TextStreamReader _stream;

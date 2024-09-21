@@ -26,6 +26,9 @@ namespace BLPP.Preprocessor
 		public bool HasArgument(string arg) => Arguments.Contains(arg[2..]);
 	}
 
+	/// <summary>
+	/// This class parses macro definitions, validates them, and then returns them in a dictionary.
+	/// </summary>
 	public class MacroProcessor
 	{
 		private PreprocessorTokenReader _stream = new([]);
