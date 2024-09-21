@@ -23,14 +23,16 @@ namespace BLPP.Preprocessor
 		Invalid,
 	}
 
-	public class Token(TokenType type, string value, int line, string whitespaceBefore)
+	public class Token(TokenType type, string value, int line, string whitespaceBefore = "")
 	{
 		public const string MACRO_VAR_ARGS_STRING = "...";
 
 		public TokenType Type { get; } = type;
 		public string Value { get; } = value;
 		public int Line { get; } = line;
-		public string WhitespaceBefore { get; } = whitespaceBefore;
+		public string WhitespaceBefore { get; set; } = whitespaceBefore;
+
+		public Token(Token copy, int line) : this(copy.Type, copy.Value, line, copy.WhitespaceBefore) { }
 
 		public bool IsValid => Type < TokenType.Invalid;
 		public string MacroName => Type == TokenType.Macro ? Value[1..] : Value;
