@@ -13,9 +13,16 @@ using BLPP.Preprocessor;
 var code = File.ReadAllText("../../test.blcs");
 var tokens = new Lexer().Preprocess(code);
 
+new MacroExpander().Expand(tokens, new MacroProcessor().Process(tokens));
+
+var line = tokens.Count > 0 ? tokens[0].Line : 1;
+
 foreach (var token in tokens)
 {
-	Console.WriteLine("{0,-24} {1,-24} {2,-24}", token.Type, token.WhitespaceBefore.Length, token.Value);
-}
+	for (var i = 0; i < token.Line - line; i++)
+	{
+		Console.WriteLine("");
+	}
 
-new MacroProcessor().Process(tokens);
+	Console.Write($"{token.WhitespaceBefore}{token.Value}");
+}
