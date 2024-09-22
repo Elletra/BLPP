@@ -309,7 +309,6 @@ namespace BLPP.Preprocessor
 
 				while (!_stream.IsAtEnd)
 				{
-
 					if ((brackets && _stream.AdvanceIfMatch(TokenType.DirectiveCurlyRight)) || (!brackets && !_stream.MatchLine(token)))
 					{
 						break;
