@@ -10,28 +10,13 @@
 
 using BLPP.Preprocessor;
 
-var filePath = "../../test.blcs";
-var code = File.ReadAllText(filePath);
+var preprocessor = new Preprocessor();
 
-var lexer = new Lexer();
-var parser = new DirectiveParser();
-var processor = new DirectiveProcessor();
-
-var tokens = lexer.Scan(code);
-var data = parser.Parse(tokens);
-
-var processed = processor.Process(tokens, data.Macros);
-
-var line = 1;
-
-foreach (var token in processed)
+try
 {
-	for (var i = 0; i < token.Line - line; i++)
-	{
-		Console.WriteLine("");
-	}
-
-	Console.Write($"{token.WhitespaceBefore}{token.Value}");
-
-	line = token.Line;
+	preprocessor.PreprocessFile("../../test3.blcs");
+}
+catch (Exception exception)
+{
+	Console.WriteLine($"[ERROR] {exception.Message}");
 }
