@@ -12,6 +12,12 @@ using BLPP.Preprocessor;
 
 namespace BLPP
 {
+	public class FileExtensionException : Exception
+	{
+		public FileExtensionException() : base($"Preprocessor can only read files with a `{Constants.Preprocessor.EXTENSION}` extension") { }
+		public FileExtensionException(int line) : base($"Preprocessor can only read files with a `{Constants.Preprocessor.EXTENSION}` extension (line {line})") { }
+	}
+
 	public class UnexpectedTokenException(string token, int line) : Exception($"Unexpected token `{token}` on line {line}")
 	{
 		public UnexpectedTokenException(char ch, int line) : this($"{ch}", line) { }
