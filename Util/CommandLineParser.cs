@@ -1,4 +1,15 @@
-﻿using BLPP.Preprocessor;
+﻿/**
+ * CommandLineParser.cs
+ *
+ * Copyright (C) 2024 Elletra
+ *
+ * This file is part of the BLPP source code. It may be used under the BSD 3-Clause License.
+ *
+ * For full terms see the LICENSE file or visit https://spdx.org/licenses/BSD-3-Clause.html
+ */
+
+using BLPP.Preprocessor;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace BLPP.Util
 {
@@ -73,37 +84,47 @@ namespace BLPP.Util
 				options.IsDirectory = true;
 			}
 
+			return new(error || !ValidateOptions(options), options);
+		}
+
+		static private bool ValidateOptions(CommandLineOptions options)
+		{
 			if (options.IsDirectory)
 			{
 				if (!Directory.Exists(options.Path))
 				{
 					Logger.LogError($"Directory does not exist at the path specified");
-					error = true;
+					return false;
 				}
+
+				return true;
 			}
-			else if (!File.Exists(options.Path))
+
+			if (!File.Exists(options.Path))
 			{
 				Logger.LogError($"File does not exist at the path specified");
 				Logger.LogError($"If the path is a directory, please specify with --directory' or -d'");
 
-				error = true;
+				return false;
 			}
-			else if (Path.GetExtension(options.Path) != Constants.Preprocessor.FILE_EXTENSION)
+
+			if (Path.GetExtension(options.Path) != Constants.Preprocessor.FILE_EXTENSION)
 			{
 				Logger.LogError($"File at the path specified does not have a '{Constants.Preprocessor.FILE_EXTENSION}' extension");
 				Logger.LogError($"If the path is a directory, please specify with --directory' or -d'");
 
-				error = true;
+				return false;
 			}
-			else if (options.Watch)
+
+			if (options.Watch)
 			{
 				Logger.LogError($"'--watch' flag only works for directories");
 				Logger.LogError($"Please specify that the path is a directory with '--directory' or '-d'");
 
-				error = true;
+				return false;
 			}
 
-			return new(error, options);
+			return true;
 		}
 	}
 }
