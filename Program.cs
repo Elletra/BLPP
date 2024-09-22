@@ -20,11 +20,11 @@ var processor = new DirectiveProcessor();
 var tokens = lexer.Scan(code);
 var data = parser.Parse(tokens);
 
-processor.Process(tokens, data.Macros);
+var processed = processor.Process(tokens, data.Macros);
 
 var line = 1;
 
-foreach (var token in tokens)
+foreach (var token in processed)
 {
 	for (var i = 0; i < token.Line - line; i++)
 	{
