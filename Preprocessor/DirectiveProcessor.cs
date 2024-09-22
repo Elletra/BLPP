@@ -127,7 +127,7 @@ namespace BLPP.Preprocessor
 			_stream.Remove(startIndex, _stream.Index - startIndex);
 			_stream.Insert(startIndex, body);
 
-			// Reset our index back to the same one we started at so we can keep expanding macros as much as we need.
+			// Reset our index back to where we started so we can keep expanding macros as much as we need.
 			_stream.Seek(startIndex);
 		}
 
@@ -148,12 +148,11 @@ namespace BLPP.Preprocessor
 				return [];
 			}
 
-			var args = new List<List<Token>>();
-
 			_stream.Consume(TokenType.ParenLeft);
 
-			var parentheses = 1;
+			var args = new List<List<Token>>();
 			var argIndex = 0;
+			var parentheses = 1;
 
 			while (!_stream.IsAtEnd && parentheses > 0)
 			{
@@ -240,26 +239,27 @@ namespace BLPP.Preprocessor
 
 						case Constants.Tokens.MACRO_KEYWORD_VARGS or Constants.Tokens.MACRO_KEYWORD_VARGS_PREPEND:
 						{
-							var prependComma = value == Constants.Tokens.MACRO_KEYWORD_VARGS_PREPEND;
 							var fixedArgsCount = macro.FixedArgumentCount;
 
 							if (args.Count > fixedArgsCount)
 							{
-								args[fixedArgsCount][0].WhitespaceBefore = prependComma ? " " : whitespace;
-							}
+								var prependComma = value == Constants.Tokens.MACRO_KEYWORD_VARGS_PREPEND;
 
-							if (prependComma)
-							{
-								body.Add(new(TokenType.Comma, ",", line, whitespace));
-							}
-
-							for (var i = fixedArgsCount; i < args.Count; i++)
-							{
-								body.AddRange(args[i]);
-
-								if (i < args.Count - 1)
+								if (prependComma)
 								{
-									body.Add(new(TokenType.Comma, ",", line));
+									body.Add(new(TokenType.Comma, ",", line, whitespace));
+								}
+
+								args[fixedArgsCount][0].WhitespaceBefore = prependComma ? " " : whitespace;
+
+								for (var i = fixedArgsCount; i < args.Count; i++)
+								{
+									body.AddRange(args[i]);
+
+									if (i < args.Count - 1)
+									{
+										body.Add(new(TokenType.Comma, ",", line));
+									}
 								}
 							}
 
