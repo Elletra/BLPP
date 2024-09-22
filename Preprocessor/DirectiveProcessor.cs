@@ -285,6 +285,7 @@ namespace BLPP.Preprocessor
 
 			if (token.Value == Constants.Tokens.DIRECTIVE_USE)
 			{
+				// Advance past file name.
 				_stream.Advance();
 			}
 			else if (token.Value == Constants.Tokens.DIRECTIVE_DEFINE)
@@ -292,21 +293,22 @@ namespace BLPP.Preprocessor
 				var name = _stream.Consume(TokenType.Identifier);
 				var macro = _macros[name.Value];
 
+				/* Advance past parameter list (if any). */
+
 				if (macro.Arguments.Count > 0)
 				{
-					/* Skip past parameter list. */
-
 					while (!_stream.IsAtEnd && !_stream.AdvanceIfMatch(TokenType.ParenRight))
 					{
 						_stream.Advance();
 					}
 				}
 
-				var brackets = _stream.Match(TokenType.DirectiveCurlyLeft);
+				/* Advance past macro body. */
+
+				var brackets = _stream.AdvanceIfMatch(TokenType.DirectiveCurlyLeft);
 
 				while (!_stream.IsAtEnd)
 				{
-					/* Skip past macro body. */
 
 					if ((brackets && _stream.AdvanceIfMatch(TokenType.DirectiveCurlyRight)) || (!brackets && !_stream.MatchLine(token)))
 					{
