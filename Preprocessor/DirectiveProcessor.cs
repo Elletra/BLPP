@@ -214,52 +214,47 @@ namespace BLPP.Preprocessor
 				var value = token.Value;
 				var whitespace = token.WhitespaceBefore;
 
-				switch (type)
+				if (!token.IsValidMacroBodyToken)
 				{
-					case TokenType.MacroParameter:
-						foreach (var arg in args[macro.Arguments.IndexOf(token.ParameterName)])
-						{
-							body.Add(new(arg, line));
-						}
+					throw new UnexpectedTokenException(token);
+				}
 
-						break;
-
-					case TokenType.MacroKeyword:
+				if (type == TokenType.MacroParameter)
+				{
+					foreach (var arg in args[macro.Arguments.IndexOf(token.ParameterName)])
 					{
-						if (value == Constants.Tokens.MACRO_KEYWORD_LINE)
-						{
+						body.Add(new(arg, line));
+					}
+				}
+				else if (type == TokenType.MacroKeyword)
+				{
+					switch (value)
+					{
+						case Constants.Tokens.MACRO_KEYWORD_LINE:
 							body.Add(new(TokenType.Number, $"{line}", line, whitespace));
-						}
-						else if (value == Constants.Tokens.MACRO_KEYWORD_VARG_COUNT)
-						{
-							if (!macro.IsVariadic)
-							{
-								throw new SyntaxException($"Cannot use `{value}` in a non-variadic macro", line);
-							}
+							break;
 
+						case Constants.Tokens.MACRO_KEYWORD_VARG_COUNT:
 							body.Add(new(TokenType.Number, $"{macro.FixedArgumentCount - args.Count}", line, whitespace));
-						}
-						else if (value == Constants.Tokens.MACRO_KEYWORD_VARGS || value == Constants.Tokens.MACRO_KEYWORD_VARGS_PREPEND)
-						{
-							if (!macro.IsVariadic)
-							{
-								throw new SyntaxException($"Cannot use `{value}` in a non-variadic macro", line);
-							}
+							break;
 
+						case Constants.Tokens.MACRO_KEYWORD_VARGS or Constants.Tokens.MACRO_KEYWORD_VARGS_PREPEND:
+						{
 							var prependComma = value == Constants.Tokens.MACRO_KEYWORD_VARGS_PREPEND;
+							var fixedArgsCount = macro.FixedArgumentCount;
+
+							if (args.Count > fixedArgsCount)
+							{
+								args[fixedArgsCount][0].WhitespaceBefore = prependComma ? " " : whitespace;
+							}
 
 							if (prependComma)
 							{
 								body.Add(new(TokenType.Comma, ",", line, whitespace));
 							}
 
-							for (var i = macro.FixedArgumentCount; i < args.Count; i++)
+							for (var i = fixedArgsCount; i < args.Count; i++)
 							{
-								if (i == macro.FixedArgumentCount && args[i].Count > 0)
-								{
-									args[i][0].WhitespaceBefore = prependComma ? " " : whitespace;
-								}
-
 								body.AddRange(args[i]);
 
 								if (i < args.Count - 1)
@@ -267,19 +262,17 @@ namespace BLPP.Preprocessor
 									body.Add(new(TokenType.Comma, ",", line));
 								}
 							}
+
+							break;
 						}
 
-						break;
+						default:
+							throw new SyntaxException($"Unknown or unsupported macro keyword `{value}`", token);
 					}
-
-					default:
-						if (!token.IsValidMacroBodyToken)
-						{
-							throw new UnexpectedTokenException(token);
-						}
-
-						body.Add(new(token, line));
-						break;
+				}
+				else
+				{
+					body.Add(new(token, line));
 				}
 			}
 
@@ -325,7 +318,7 @@ namespace BLPP.Preprocessor
 			}
 			else
 			{
-				throw new SyntaxException($"Unknown or unsupported preprocessor directive '{token.Value}'", token);
+				throw new SyntaxException($"Unknown or unsupported preprocessor directive `{token.Value}`", token);
 			}
 
 			// Strip out the directive.
