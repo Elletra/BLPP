@@ -135,14 +135,26 @@ namespace BLPP.Preprocessor
 
 			ParseDefineBody(macro, brackets);
 
-			if (!brackets && macro.Body.Count <= 0)
+			var body = macro.Body;
+
+			if (!brackets && body.Count <= 0)
 			{
 				throw new UnexpectedEndOfLineException(define);
 			}
 
-			if (macro.Body.Count > 0)
+			if (body.Count > 0)
 			{
-				macro.Body[0].WhitespaceBefore = "";
+				if (body[0].Type == TokenType.MacroConcat)
+				{
+					throw new SyntaxException($"Macro concatenation operator `{body[0].Value}` missing left side operand", body[0]);
+				}
+
+				if (body[^1].Type == TokenType.MacroConcat)
+				{
+					throw new SyntaxException($"Macro concatenation operator `{body[^1].Value}` missing right side operand", body[^1]);
+				}
+
+				body[0].WhitespaceBefore = "";
 			}
 		}
 
@@ -193,6 +205,11 @@ namespace BLPP.Preprocessor
 				switch (token.Type)
 				{
 					case TokenType.Macro:
+						if (token.MacroName == macro.Name)
+						{
+							throw new SyntaxException($"Macro '{macro.Name}' cannot invoke itself", token.Line);
+						}
+
 						macro.Macros.Add(token.MacroName);
 						break;
 
@@ -208,6 +225,11 @@ namespace BLPP.Preprocessor
 						if (token.IsVariadicMacroKeyword && !macro.IsVariadic)
 						{
 							throw new SyntaxException($"Cannot use `{value}` in a non-variadic macro", token);
+						}
+
+						if (!token.IsValidMacroKeyword)
+						{
+							throw new SyntaxException($"Unknown or unsupported macro keyword `{value}`", token);
 						}
 
 						break;

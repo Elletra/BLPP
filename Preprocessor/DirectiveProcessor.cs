@@ -111,19 +111,6 @@ namespace BLPP.Preprocessor
 			var args = CollectMacroArguments(macro, token.Line);
 			var body = CollectMacroBody(macro, args, token.Line);
 
-			if (body.Count > 0)
-			{
-				if (body[0].Type == TokenType.MacroConcat)
-				{
-					throw new SyntaxException($"Macro concatenation operator `{body[0].Value}` missing left side operand", body[0]);
-				}
-
-				if (body[^1].Type == TokenType.MacroConcat)
-				{
-					throw new SyntaxException($"Macro concatenation operator `{body[^1].Value}` missing right side operand", body[^1]);
-				}
-			}
-
 			_stream.Remove(startIndex, _stream.Index - startIndex);
 			_stream.Insert(startIndex, body);
 
