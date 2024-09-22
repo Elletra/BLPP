@@ -45,6 +45,8 @@ namespace BLPP.Preprocessor
 
 		public bool AddFile(string fileName)
 		{
+			fileName = fileName[1..^1];
+
 			if (Files.Contains(fileName))
 			{
 				return false;
