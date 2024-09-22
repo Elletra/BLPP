@@ -14,7 +14,7 @@ namespace BLPP.Util
 {
 	static public class Logger
 	{
-		static public bool Silent = false;
+		static public bool Quiet = false;
 
 		static public void LogError(string message, bool indented = false) => LogMessage($"{(indented ? "\t" : "")}[ERROR] {message}", ConsoleColor.DarkRed);
 		static public void LogWarning(string message) => LogMessage($"[WARNING] {message}", ConsoleColor.Yellow);
@@ -30,7 +30,7 @@ namespace BLPP.Util
 
 		static public void LogMessage(string message)
 		{
-			if (!Silent)
+			if (!Quiet)
 			{
 				Console.WriteLine(message);
 			}

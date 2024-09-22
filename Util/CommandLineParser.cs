@@ -21,8 +21,9 @@ namespace BLPP.Util
 
 		public bool IsDirectory { get; set; } = false;
 		public bool Watch { get; set; } = false;
-		public bool Silent { get; set; } = false;
+		public bool Quiet { get; set; } = false;
 		public bool OutputEmptyFiles { get; set; } = false;
+		public bool CommandLineMode { get; set; } = false;
 	}
 
 	static public class CommandLineParser
@@ -43,8 +44,12 @@ namespace BLPP.Util
 						error = true;
 						break;
 
-					case "--silent" or "-q":
-						options.Silent = true;
+					case "--cli" or "-X":
+						options.CommandLineMode = true;
+						break;
+
+					case "--quiet" or "-q":
+						options.Quiet = true;
 						break;
 
 					case "--directory" or "-d":
@@ -68,6 +73,10 @@ namespace BLPP.Util
 							if (arg == "-Q" || arg == "-D" || arg == "-W")
 							{
 								Logger.LogError($"Did you mean '{arg.ToLower()}'?");
+							}
+							else if (arg == "-x")
+							{
+								Logger.LogError($"Did you mean '{arg.ToUpper()}'?");
 							}
 
 							error = true;
@@ -103,7 +112,13 @@ namespace BLPP.Util
 			{
 				if (!Directory.Exists(options.Path))
 				{
-					Logger.LogError($"Directory does not exist at the path specified");
+					Logger.LogError("Directory does not exist at the path specified");
+					return false;
+				}
+
+				if (options.CommandLineMode && options.Watch)
+				{
+					Logger.LogError("Cannot use watch and command-line mode at the same time");
 					return false;
 				}
 
@@ -112,8 +127,8 @@ namespace BLPP.Util
 
 			if (!File.Exists(options.Path))
 			{
-				Logger.LogError($"File does not exist at the path specified");
-				Logger.LogError($"If the path is a directory, please specify with --directory' or -d'");
+				Logger.LogError("File does not exist at the path specified");
+				Logger.LogError("If the path is a directory, please specify with --directory' or -d'");
 
 				return false;
 			}
@@ -121,15 +136,15 @@ namespace BLPP.Util
 			if (Path.GetExtension(options.Path) != Constants.Preprocessor.FILE_EXTENSION)
 			{
 				Logger.LogError($"File at the path specified does not have a '{Constants.Preprocessor.FILE_EXTENSION}' extension");
-				Logger.LogError($"If the path is a directory, please specify with --directory' or -d'");
+				Logger.LogError("If the path is a directory, please specify with --directory' or -d'");
 
 				return false;
 			}
 
 			if (options.Watch)
 			{
-				Logger.LogError($"'--watch' flag only works for directories");
-				Logger.LogError($"Please specify that the path is a directory with '--directory' or '-d'");
+				Logger.LogError("'--watch' flag only works for directories");
+				Logger.LogError("Please specify that the path is a directory with '--directory' or '-d'");
 
 				return false;
 			}
@@ -140,14 +155,17 @@ namespace BLPP.Util
 		static private void DisplayHelp()
 		{
 			Logger.LogMessage(
-				$"usage: BLPP path [-h] [-d] [-w] [-q] [-e]\n" +
+				"usage: BLPP path [-h] [-d] [-w] [-q] [-e]\n" +
 				"  options:\n" +
-				"    -h or --help            Displays help.\n" +
-				"    -d or --directory       Specifies that the path is a directory.\n" +
-				"    -w or --watch           Watches a directory for changes, and automatically\n" +
-				"                            processes any files that were changed.\n" +
-				"    -q or --quiet           Disables all messages.\n" +
-				"    -e or --output-empty    Forces creation of processed files that are empty."
+				"    -h, --help            Displays help.\n" +
+				"    -d, --directory       Specifies that the path is a directory.\n" +
+				"    -w, --watch           Watches a directory for changes, and automatically\n" +
+				"                          processes any files that were changed.\n" +
+				"    -q, --quiet           Disables all messages.\n" +
+				"    -e, --output-empty    Forces creation of processed files that are empty.\n" +
+				"    -X, --cli             Makes the program operate as a command-line interface\n" +
+				"                          that takes no keyboard input and closes immediately\n" +
+				"                          upon completion or failure. (Incompatible with '--watch')\n"
 			);
 		}
 	}
