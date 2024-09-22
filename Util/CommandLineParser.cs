@@ -22,6 +22,7 @@ namespace BLPP.Util
 		public bool IsDirectory { get; set; } = false;
 		public bool Watch { get; set; } = false;
 		public bool Silent { get; set; } = false;
+		public bool OutputEmptyFiles { get; set; } = false;
 	}
 
 	static public class CommandLineParser
@@ -37,6 +38,11 @@ namespace BLPP.Util
 
 				switch (arg)
 				{
+					case "--help" or "-h":
+						DisplayHelp();
+						error = true;
+						break;
+
 					case "--silent" or "-q":
 						options.Silent = true;
 						break;
@@ -47,6 +53,10 @@ namespace BLPP.Util
 
 					case "--watch" or "-w":
 						options.Watch = true;
+						break;
+
+					case "--output-empty" or "-e":
+						options.OutputEmptyFiles = true;
 						break;
 
 					default:
@@ -70,7 +80,7 @@ namespace BLPP.Util
 						}
 						else
 						{
-							options.Path = arg;
+							options.Path = Path.GetFullPath(arg);
 						}
 
 						break;
@@ -125,6 +135,20 @@ namespace BLPP.Util
 			}
 
 			return true;
+		}
+
+		static private void DisplayHelp()
+		{
+			Logger.LogMessage(
+				$"usage: BLPP path [-h] [-d] [-w] [-q] [-e]\n" +
+				"  options:\n" +
+				"    -h or --help            Displays help.\n" +
+				"    -d or --directory       Specifies that the path is a directory.\n" +
+				"    -w or --watch           Watches a directory for changes, and automatically\n" +
+				"                            processes any files that were changed.\n" +
+				"    -q or --quiet           Disables all messages.\n" +
+				"    -e or --output-empty    Forces creation of processed files that are empty."
+			);
 		}
 	}
 }

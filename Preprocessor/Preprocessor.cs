@@ -21,16 +21,39 @@ namespace BLPP.Preprocessor
 		private readonly DirectiveParser _parser = new();
 		private readonly DirectiveProcessor _processor = new();
 
+		private CommandLineOptions _options = new();
+
 		private FileSystemWatcher _watcher = new();
 		private readonly Dictionary<string, long> _watcherCache = [];
 
-		public bool PreprocessFile(string filePath)
+		public void Preprocess(CommandLineOptions options)
+		{
+			_options = options;
+
+			if (options.IsDirectory)
+			{
+				if (options.Watch)
+				{
+					WatchDirectory(options.Path);
+				}
+				else if (PreprocessDirectory(options.Path) <= 0)
+				{
+					Logger.LogError($"Directory contains no files with the '{Constants.Preprocessor.FILE_EXTENSION}' extension");
+				}
+			}
+			else
+			{
+				PreprocessFile(options.Path);
+			}
+		}
+
+		private bool PreprocessFile(string filePath)
 		{
 			var success = true;
 
 			try
 			{
-				PreprocessFile(Path.GetFullPath(filePath), []);
+				PreprocessFile(filePath, []);
 			}
 			catch (Exception exception)
 			{
@@ -41,31 +64,25 @@ namespace BLPP.Preprocessor
 			return success;
 		}
 
-		public void PreprocessDirectory(string directoryPath, bool watch = false)
+		private int PreprocessDirectory(string directoryPath)
 		{
-			directoryPath = Path.GetFullPath(directoryPath);
+			var files = Directory.GetFiles(directoryPath, $"*{Constants.Preprocessor.FILE_EXTENSION}");
+			var visited = new HashSet<string>();
 
-			if (watch)
+			foreach (var file in files)
 			{
-				WatchDirectory(directoryPath);
-			}
-			else
-			{
-				var visited = new HashSet<string>();
-
-				foreach (var file in Directory.GetFiles(directoryPath, $"*{Constants.Preprocessor.FILE_EXTENSION}"))
+				try
 				{
-					try
-					{
-						PreprocessFile(file, visited);
-					}
-					catch (Exception exception)
-					{
-						PreprocessorErrorHandler(exception);
-						break;
-					}
+					PreprocessFile(file, visited);
+				}
+				catch (Exception exception)
+				{
+					PreprocessorErrorHandler(exception);
+					break;
 				}
 			}
+
+			return files.Length;
 		}
 
 		private void PreprocessFile(string filePath, HashSet<string> visited)
@@ -164,15 +181,23 @@ namespace BLPP.Preprocessor
 
 				var path = Path.GetDirectoryName(name);
 				var newFile = Path.GetFullPath($"{Path.GetFileNameWithoutExtension(name)}.cs", path);
+				var empty = processedTokens.Count <= 0;
 
-				if (processedTokens.Count > 0)
+				if (empty || _options.OutputEmptyFiles)
 				{
 					using var stream = new FileStream(newFile, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite);
 					using var writer = new StreamWriter(stream);
 
 					writer.Write(code);
 
-					Logger.LogMessage($"\tOutput processed file: \"{newFile}\"", ConsoleColor.DarkGray);
+					if (empty)
+					{
+						Logger.LogMessage($"\tOutput empty processed file: \"{newFile}\"", ConsoleColor.DarkGray);
+					}
+					else
+					{
+						Logger.LogMessage($"\tOutput processed file: \"{newFile}\"", ConsoleColor.DarkGray);
+					}
 				}
 				else
 				{
@@ -206,7 +231,7 @@ namespace BLPP.Preprocessor
 
 			Logger.LogMessage($"Watching directory \"{directoryPath}\" for changes...\n", ConsoleColor.Cyan);
 
-			PreprocessDirectory(directoryPath, watch: false);
+			PreprocessDirectory(directoryPath);
 
 			while (true)
 			{

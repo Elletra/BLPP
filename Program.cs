@@ -26,16 +26,7 @@ try
 		Logger.Silent = options.Silent;
 		Logger.LogHeader();
 
-		var preprocessor = new Preprocessor();
-
-		if (options.IsDirectory)
-		{
-			preprocessor.PreprocessDirectory(options.Path, options.Watch);
-		}
-		else
-		{
-			preprocessor.PreprocessFile(options.Path);
-		}
+		new Preprocessor().Preprocess(options);
 	}
 }
 catch (Exception exception)
