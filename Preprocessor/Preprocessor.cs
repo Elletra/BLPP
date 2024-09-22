@@ -6,12 +6,12 @@
 		private readonly DirectiveParser _parser = new();
 		private readonly DirectiveProcessor _processor = new();
 
-		public int PreprocessFile(string filePath)
+		public List<string> PreprocessFile(string filePath)
 		{
-			var processedCount = 0;
 			var queue = new Queue<string>();
 			var macros = new Dictionary<string, Macro>();
 			var parsed = new Dictionary<string, List<Token>>();
+			var processed = new List<string>();
 
 			queue.Enqueue(Path.GetFullPath(filePath, Directory.GetCurrentDirectory()));
 
@@ -37,8 +37,6 @@
 				{
 					throw new FileNotFoundException($"File not found: \"{nextPath}\"", nextPath);
 				}
-
-				processedCount++;
 
 				var code = File.ReadAllText(nextPath);
 				var tokens = _lexer.Scan(code);
@@ -71,6 +69,8 @@
 
 						macros[name] = macro;
 					}
+
+					processed.Add(nextPath);
 				}
 			}
 
@@ -78,11 +78,11 @@
 
 			foreach (var (name, tokens) in parsed)
 			{
-				var processed = _processor.Process(tokens, macros);
+				var processedTokens = _processor.Process(tokens, macros);
 				var code = "";
 				var line = 1;
 
-				foreach (var token in processed)
+				foreach (var token in processedTokens)
 				{
 					for (var i = 0; i < token.Line - line; i++)
 					{
@@ -97,7 +97,7 @@
 				var path = Path.GetDirectoryName(name);
 				var newFile = Path.GetFullPath($"{Path.GetFileNameWithoutExtension(name)}.cs", path);
 				
-				if (processed.Count > 0)
+				if (processedTokens.Count > 0)
 				{
 					Console.WriteLine($"Writing processed file: \"{newFile}\"");
 					File.WriteAllText(newFile, code);
@@ -108,7 +108,7 @@
 				}
 			}
 
-			return processedCount;
+			return processed;
 		}
 	}
 }
