@@ -96,7 +96,7 @@ namespace BLPP.Preprocessor
 				}
 				else
 				{
-					throw new SyntaxException($"Unknown or unsupported preprocessor directive '{token.Value}'", token);
+					throw new SyntaxException($"Unknown or unsupported preprocessor directive `{token.Value}`", token);
 				}
 			}
 		}
@@ -205,7 +205,7 @@ namespace BLPP.Preprocessor
 					case TokenType.MacroKeyword:
 						if (token.IsVariadicMacroKeyword && !macro.IsVariadic)
 						{
-							throw new SyntaxException($"Cannot use '{value}' in a non-variadic macro", token);
+							throw new SyntaxException($"Cannot use `{value}` in a non-variadic macro", token);
 						}
 
 						break;
