@@ -15,8 +15,28 @@ var errorCode = 0;
 
 try
 {
-	Logger.LogHeader();
-	new Preprocessor().PreprocessDirectory(directoryPath: "../..", watch: true);
+	var (error, options) = CommandLineParser.Parse(args);
+
+	if (error)
+	{
+		errorCode = 1;
+	}
+	else
+	{
+		Logger.Silent = options.Silent;
+		Logger.LogHeader();
+
+		var preprocessor = new Preprocessor();
+
+		if (options.IsDirectory)
+		{
+			preprocessor.PreprocessDirectory(options.Path, options.Watch);
+		}
+		else
+		{
+			preprocessor.PreprocessFile(options.Path);
+		}
+	}
 }
 catch (Exception exception)
 {

@@ -93,7 +93,7 @@ namespace BLPP.Preprocessor
 
 				if (Path.GetExtension(nextPath) != Constants.Preprocessor.FILE_EXTENSION)
 				{
-					throw new FileExtensionException();
+					throw new FileExtensionException(nextPath);
 				}
 
 				if (!File.Exists(nextPath))
@@ -281,17 +281,17 @@ namespace BLPP.Preprocessor
 					or UnexpectedEndOfCodeException
 					or UnterminatedStringException
 					or UnterminatedCommentException:
-					Logger.LogError($"\t[ERROR] Syntax error: {exception.Message}");
+					Logger.LogError($"Syntax error: {exception.Message}", indented: true);
 					break;
 
 				case UndefinedMacroException
 					or UndefinedMacroParameterException
 					or MultipleDefinitionsException:
-					Logger.LogError($"\t[ERROR] Preprocessing error: {exception.Message}");
+					Logger.LogError($"Preprocessing error: {exception.Message}", indented: true);
 					break;
 
 				default:
-					Logger.LogError($"[ERROR] {exception.Message}");
+					Logger.LogError($"{exception.Message}");
 					break;
 			}
 
