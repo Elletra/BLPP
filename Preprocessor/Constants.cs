@@ -27,7 +27,9 @@ namespace BLPP.Preprocessor
 
 		static public class Preprocessor
 		{
-			public const string EXTENSION = ".blcs";
+			public const string FILE_EXTENSION = ".blcs";
+			public const string VERSION = "0.1.0";
+			public const string AUTHOR = "Elletra";
 		}
 	}
 }
