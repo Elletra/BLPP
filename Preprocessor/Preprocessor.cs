@@ -6,8 +6,9 @@
 		private readonly DirectiveParser _parser = new();
 		private readonly DirectiveProcessor _processor = new();
 
-		public void PreprocessFile(string filePath)
+		public int PreprocessFile(string filePath)
 		{
+			var processedCount = 0;
 			var queue = new Queue<string>();
 			var macros = new Dictionary<string, Macro>();
 			var parsed = new Dictionary<string, List<Token>>();
@@ -37,29 +38,39 @@
 					throw new FileNotFoundException($"File not found: \"{nextPath}\"", nextPath);
 				}
 
+				processedCount++;
+
 				var code = File.ReadAllText(nextPath);
 				var tokens = _lexer.Scan(code);
-				var data = _parser.Parse(tokens);
 
-				parsed[nextPath] = tokens;
-
-				/* Queue up more files to process. */
-
-				foreach (var file in data.Files)
+				if (tokens.Count <= 0)
 				{
-					queue.Enqueue(Path.GetFullPath(file, basePath));
+					Console.WriteLine($"\tFile is empty! Skipping...\n");
 				}
-
-				/* Combine macros. */
-
-				foreach (var (name, macro) in data.Macros)
+				else
 				{
-					if (macros.ContainsKey(name))
+					var data = _parser.Parse(tokens);
+
+					parsed[nextPath] = tokens;
+
+					/* Queue up more files to process. */
+
+					foreach (var file in data.Files)
 					{
-						throw new MultipleDefinitionsException(macro);
+						queue.Enqueue(Path.GetFullPath(file, basePath));
 					}
 
-					macros[name] = macro;
+					/* Combine macros. */
+
+					foreach (var (name, macro) in data.Macros)
+					{
+						if (macros.ContainsKey(name))
+						{
+							throw new MultipleDefinitionsException(macro);
+						}
+
+						macros[name] = macro;
+					}
 				}
 			}
 
@@ -86,9 +97,18 @@
 				var path = Path.GetDirectoryName(name);
 				var newFile = Path.GetFullPath($"{Path.GetFileNameWithoutExtension(name)}.cs", path);
 				
-				Console.WriteLine($"Writing: \"{newFile}\"");
-				File.WriteAllText(newFile, code);
+				if (processed.Count > 0)
+				{
+					Console.WriteLine($"Writing processed file: \"{newFile}\"");
+					File.WriteAllText(newFile, code);
+				}
+				else
+				{
+					Console.WriteLine($"Processed file \"{newFile}\" would be empty, skipping...");
+				}
 			}
+
+			return processedCount;
 		}
 	}
 }
