@@ -183,9 +183,9 @@ namespace BLPP.Preprocessor
 				var newFile = Path.GetFullPath($"{Path.GetFileNameWithoutExtension(name)}.cs", path);
 				var empty = processedTokens.Count <= 0;
 
-				if (empty || _options.OutputEmptyFiles)
+				if (!empty || _options.OutputEmptyFiles)
 				{
-					using var stream = new FileStream(newFile, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite);
+					using var stream = new FileStream(newFile, FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
 					using var writer = new StreamWriter(stream);
 
 					writer.Write(code);
