@@ -14,7 +14,7 @@ var preprocessor = new Preprocessor();
 
 try
 {
-	preprocessor.PreprocessFile("../../test3.blcs");
+	preprocessor.PreprocessFile("../../test.blcs");
 }
 catch (Exception exception)
 {
