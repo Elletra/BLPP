@@ -9,14 +9,21 @@
  */
 
 using BLPP.Preprocessor;
+using BLPP.Util;
 
-var preprocessor = new Preprocessor();
+var errorCode = 0;
 
 try
 {
-	preprocessor.PreprocessFile("../../test.blcs");
+	Logger.LogHeader();
+	new Preprocessor().PreprocessDirectory(directoryPath: "../..", watch: true);
 }
 catch (Exception exception)
 {
-	Console.WriteLine($"[ERROR] {exception.Message}");
+	Logger.LogMessage(exception.Message);
+	Logger.LogMessage(exception.StackTrace ?? "");
+
+	errorCode = 1;
 }
+
+return errorCode;
