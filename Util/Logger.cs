@@ -17,8 +17,8 @@ namespace BLPP.Util
 		static public bool Silent = false;
 
 		static public void LogError(string message, bool indented = false) => LogMessage($"{(indented ? "\t" : "")}[ERROR] {message}", ConsoleColor.DarkRed);
-		static public void LogWarning(string message) => LogMessage(message, ConsoleColor.Yellow);
-
+		static public void LogWarning(string message) => LogMessage($"[WARNING] {message}", ConsoleColor.Yellow);
+		static public void LogSuccess(string message) => LogMessage($"[SUCCESS] {message}", ConsoleColor.Green);
 		static public void LogMessage(string message, ConsoleColor textColor)
 		{
 			var prev = Console.ForegroundColor;

@@ -182,7 +182,7 @@ namespace BLPP.Preprocessor
 
 			if (parsed.Count > 0)
 			{
-				Logger.LogMessage($"BLPP finished successfully in {DateTimeOffset.Now.ToUnixTimeMilliseconds() - startTime} ms\n", ConsoleColor.Green);
+				Logger.LogSuccess($"BLPP finished successfully in {DateTimeOffset.Now.ToUnixTimeMilliseconds() - startTime} ms\n");
 			}
 		}
 
