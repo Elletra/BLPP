@@ -164,7 +164,7 @@ namespace BLPP.Preprocessor
 				Logger.LogMessage($"Processing: \"{name}\"");
 
 				var processedTokens = _processor.Process(tokens, macros);
-				var code = "";
+				var code = Constants.Preprocessor.FILE_TOP_COMMENT;
 				var line = 1;
 
 				foreach (var token in processedTokens)
@@ -188,15 +188,14 @@ namespace BLPP.Preprocessor
 					using var stream = new FileStream(newFile, FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
 					using var writer = new StreamWriter(stream);
 
+					writer.Write($"{code}\n\n{Constants.Preprocessor.FILE_BOTTOM_COMMENT}");
 
 					if (empty)
 					{
-						writer.Write(Constants.Preprocessor.FILE_BOTTOM_COMMENT);
 						Logger.LogMessage($"\tOutput empty processed file: \"{newFile}\"", ConsoleColor.DarkGray);
 					}
 					else
 					{
-						writer.Write($"{code}\n\n{Constants.Preprocessor.FILE_BOTTOM_COMMENT}");
 						Logger.LogMessage($"\tOutput processed file: \"{newFile}\"", ConsoleColor.DarkGray);
 					}
 				}
@@ -323,8 +322,11 @@ namespace BLPP.Preprocessor
 		{
 			switch (exception)
 			{
-				case SyntaxException
-					or UnexpectedTokenException
+				case SyntaxException:
+					Logger.LogError(exception.Message, indented: true);
+					break;
+
+				case UnexpectedTokenException
 					or UnexpectedEndOfLineException
 					or UnexpectedEndOfCodeException
 					or UnterminatedStringException

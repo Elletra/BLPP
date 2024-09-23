@@ -304,7 +304,7 @@ namespace BLPP.Preprocessor
 					_stream.Advance();
 				}
 			}
-			else
+			else if (token.Value != Constants.Tokens.DIRECTIVE_BLCS)
 			{
 				throw new SyntaxException($"Unknown or unsupported preprocessor directive `{token.Value}`", token);
 			}

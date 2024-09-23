@@ -9,6 +9,7 @@
  */
 
 using BLPP.Util;
+using static BLPP.Preprocessor.Constants;
 
 namespace BLPP.Preprocessor
 {
@@ -71,13 +72,18 @@ namespace BLPP.Preprocessor
 			_stream = new(tokens);
 			_data = new();
 
-			ParseMacros();
+			ParseDirectives();
 
 			return _data;
 		}
 
-		private void ParseMacros()
+		private void ParseDirectives()
 		{
+			if (!_stream.Match(TokenType.Directive) || !_stream.MatchLine(1) || _stream.Peek().Value != Tokens.DIRECTIVE_BLCS)
+			{
+				throw new SyntaxException("File must have a `##blcs` directive on the first line", _stream.Peek());
+			}
+
 			while (!_stream.IsAtEnd)
 			{
 				Parse(_stream.Read());
@@ -88,11 +94,15 @@ namespace BLPP.Preprocessor
 		{
 			if (token.Type == TokenType.Directive)
 			{
-				if (token.Value == Constants.Tokens.DIRECTIVE_DEFINE)
+				if (token.Value == Tokens.DIRECTIVE_BLCS)
+				{
+					ParseBlcs(token);
+				}
+				else if (token.Value == Tokens.DIRECTIVE_DEFINE)
 				{
 					ParseDefine(token);
 				}
-				else if (token.Value == Constants.Tokens.DIRECTIVE_USE)
+				else if (token.Value == Tokens.DIRECTIVE_USE)
 				{
 					ParseUse(token);
 				}
@@ -100,6 +110,19 @@ namespace BLPP.Preprocessor
 				{
 					throw new SyntaxException($"Unknown or unsupported preprocessor directive `{token.Value}`", token);
 				}
+			}
+		}
+
+		private void ParseBlcs(Token blcs)
+		{
+			if (blcs.Line > 1)
+			{
+				throw new SyntaxException("`##blcs` directive should only appear once", blcs);
+			}
+
+			if (_stream.MatchLine(blcs))
+			{
+				throw new SyntaxException("`##blcs` directive should be the only code on the first line", _stream.Peek());
 			}
 		}
 
