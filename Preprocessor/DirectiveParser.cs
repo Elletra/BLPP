@@ -21,7 +21,7 @@ namespace BLPP.Preprocessor
 		public readonly List<Token> Body = [];
 		public readonly HashSet<string> Macros = [];
 
-		public bool IsVariadic => Arguments[^1] == Constants.Tokens.MACRO_VAR_ARGS;
+		public bool IsVariadic => Arguments[^1] == Tokens.MACRO_VAR_ARGS;
 		public int FixedArgumentCount => IsVariadic ? Arguments.Count - 1 : Arguments.Count;
 
 		public bool HasArgument(string arg) => Arguments.Contains(arg[2..]);
@@ -79,9 +79,9 @@ namespace BLPP.Preprocessor
 
 		private void ParseDirectives()
 		{
-			if (!_stream.Match(TokenType.Directive) || !_stream.MatchLine(1) || _stream.Peek().Value != Tokens.DIRECTIVE_BLCS)
+			if (!_stream.Match(TokenType.Directive) || !_stream.MatchLine(Constants.DirectiveParser.BLCS_LINE) || _stream.Peek().Value != Tokens.DIRECTIVE_BLCS)
 			{
-				throw new SyntaxException("File must have a `##blcs` directive on the first line", _stream.Peek());
+				throw new SyntaxException($"File must start with a `##blcs` directive", Constants.DirectiveParser.BLCS_LINE);
 			}
 
 			while (!_stream.IsAtEnd)
@@ -115,7 +115,7 @@ namespace BLPP.Preprocessor
 
 		private void ParseBlcs(Token blcs)
 		{
-			if (blcs.Line > 1)
+			if (blcs.Line > Constants.DirectiveParser.BLCS_LINE)
 			{
 				throw new SyntaxException("`##blcs` directive should only appear once", blcs);
 			}

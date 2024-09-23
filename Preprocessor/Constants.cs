@@ -26,6 +26,11 @@ namespace BLPP.Preprocessor
 			public const string MACRO_KEYWORD_VARGS_PREPEND = "#!vargsp";
 		}
 
+		static public class DirectiveParser
+		{
+			public const int BLCS_LINE = 1;
+		}
+
 		static public class Preprocessor
 		{
 			public const string FILE_EXTENSION = ".blcs";
