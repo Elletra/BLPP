@@ -215,7 +215,8 @@ namespace BLPP.Preprocessor
 		{
 			_watcher = new(directoryPath)
 			{
-				NotifyFilter = NotifyFilters.LastWrite
+				NotifyFilter = NotifyFilters.FileName
+					| NotifyFilters.LastWrite
 					| NotifyFilters.Security
 					| NotifyFilters.Size,
 
@@ -225,6 +226,7 @@ namespace BLPP.Preprocessor
 				EnableRaisingEvents = true,
 			};
 
+			_watcher.Created += OnWatchedFileCreated;
 			_watcher.Changed += OnWatchedFileChanged;
 			_watcher.Deleted += OnWatchedFileDeleted;
 			_watcher.Error += OnWatchedFileError;
@@ -236,6 +238,23 @@ namespace BLPP.Preprocessor
 			while (true)
 			{
 				_watcher.WaitForChanged(WatcherChangeTypes.Changed);
+			}
+		}
+
+		private void OnWatchedFileCreated(object sender, FileSystemEventArgs args)
+		{
+			if (args.ChangeType == WatcherChangeTypes.Created)
+			{
+				Logger.LogMessage($"Detected file creation: \"${args.FullPath}\"");
+
+				try
+				{
+					PreprocessFile(args.FullPath, []);
+				}
+				catch (Exception exception)
+				{
+					PreprocessorErrorHandler(exception);
+				}
 			}
 		}
 
@@ -266,8 +285,11 @@ namespace BLPP.Preprocessor
 
 		private void OnWatchedFileDeleted(object sender, FileSystemEventArgs args)
 		{
-			Logger.LogWarning($"Detected file deletion: \"{args.FullPath}\"");
-			_watcherCache.Remove(args.FullPath);
+			if (args.ChangeType == WatcherChangeTypes.Deleted)
+			{
+				Logger.LogWarning($"Detected file deletion: \"{args.FullPath}\"");
+				_watcherCache.Remove(args.FullPath);
+			}
 		}
 
 		private void OnWatchedFileError(object sender, ErrorEventArgs args) => Logger.LogMessage(args.GetException().Message);
