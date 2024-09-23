@@ -81,7 +81,7 @@ namespace BLPP.Preprocessor
 		{
 			if (!_stream.Match(TokenType.Directive) || !_stream.MatchLine(Constants.DirectiveParser.BLCS_LINE) || _stream.Peek().Value != Tokens.DIRECTIVE_BLCS)
 			{
-				throw new SyntaxException($"File must start with a `##blcs` directive", Constants.DirectiveParser.BLCS_LINE);
+				throw new SyntaxException($"File must have a `##blcs` directive on line {Constants.DirectiveParser.BLCS_LINE}", Constants.DirectiveParser.BLCS_LINE);
 			}
 
 			while (!_stream.IsAtEnd)
@@ -122,7 +122,7 @@ namespace BLPP.Preprocessor
 
 			if (_stream.MatchLine(blcs))
 			{
-				throw new SyntaxException("`##blcs` directive should be the only code on the first line", _stream.Peek());
+				throw new SyntaxException($"`##blcs` directive should be the only code on line {Constants.DirectiveParser.BLCS_LINE}", _stream.Peek());
 			}
 		}
 
