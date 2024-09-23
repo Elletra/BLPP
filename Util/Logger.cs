@@ -38,7 +38,7 @@ namespace BLPP.Util
 
 		static public void LogHeader()
 		{
-			LogMessage($"### Blockland Preprocessor v{Constants.Preprocessor.VERSION} (by {Constants.Preprocessor.AUTHOR}) ###\n", ConsoleColor.White);
+			LogMessage($"### Blockland Preprocessor (Version {Constants.Preprocessor.VERSION}) by {Constants.Preprocessor.AUTHOR} ###\n", ConsoleColor.White);
 		}
 	}
 }

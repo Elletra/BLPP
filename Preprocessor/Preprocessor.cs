@@ -188,14 +188,15 @@ namespace BLPP.Preprocessor
 					using var stream = new FileStream(newFile, FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
 					using var writer = new StreamWriter(stream);
 
-					writer.Write(code);
 
 					if (empty)
 					{
+						writer.Write(Constants.Preprocessor.FILE_BOTTOM_COMMENT);
 						Logger.LogMessage($"\tOutput empty processed file: \"{newFile}\"", ConsoleColor.DarkGray);
 					}
 					else
 					{
+						writer.Write($"{code}\n\n{Constants.Preprocessor.FILE_BOTTOM_COMMENT}");
 						Logger.LogMessage($"\tOutput processed file: \"{newFile}\"", ConsoleColor.DarkGray);
 					}
 				}
