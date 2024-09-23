@@ -155,7 +155,7 @@ namespace BLPP.Util
 		static private void DisplayHelp()
 		{
 			Logger.LogMessage(
-				"usage: BLPP path [-h] [-d] [-w] [-q] [-e]\n" +
+				"usage: BLPP path [-h] [-d] (-w | -X) [-q] [-e]\n" +
 				"  options:\n" +
 				"    -h, --help            Displays help.\n" +
 				"    -d, --directory       Specifies that the path is a directory.\n" +
