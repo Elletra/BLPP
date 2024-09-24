@@ -165,7 +165,7 @@ namespace BLPP.Util
 				"    -d, --directory       Specifies that the path is a directory.\n" +
 				"    -w, --watch           Watches a directory for changes, and automatically\n" +
 				"                          processes any files that were changed.\n" +
-				"    -q, --quiet           Disables all messages.\n" +
+				"    -q, --quiet           Disables all messages (except command-line argument errors).\n" +
 				"    -e, --output-empty    Forces creation of processed files that are empty.\n" +
 				"    -X, --cli             Makes the program operate as a command-line interface\n" +
 				"                          that takes no keyboard input and closes immediately\n" +
