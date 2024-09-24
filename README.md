@@ -1,14 +1,14 @@
-# Blockland Preprocessor
+# Blockland Preprocessor (0.3.3)
 
 This program transpiles custom preprocessor directives into TorqueScript code. It mainly allows for the usage of macros, like in C/C++.
 
-It's mainly targetted towards Blockland, but it can be used for any software that runs on the TGE 1.3 or before.
+It's mainly targetted towards Blockland, but it can be used for any software that runs on TGE 1.3 or before.
 
 ## Basics
 
 The Blockland Preprocessor ***does not*** read `.cs` files! It reads `.blcs` files instead.
 
-All files must start with `##blcs`.
+All files must start with the `##blcs` directive.
 
 ## Macros
 
@@ -122,11 +122,12 @@ To use macros from other files, you can do so like this:
 ##use "relative/path/to/file.blcs"
 ```
 
-Please note that **this does not execute the file**—it simply processes the file and makes the macro definitions available to your file.
+Please note that ***this does not execute the file***—it simply processes the file and makes the macro definitions available.
 
 ### Miscellaneous
 
 You can insert the line number into your macros with `#!line`.
+
 If you want to insert it elsewhere into your code, you can just `##define line #!line` and then use `#line` anywhere.
 
 ## Usage
@@ -147,4 +148,4 @@ You can also use it as a command-line interface: `usage: BLPP path [-h] [-d] (-w
 
 `-e`, `--output-empty` Forces creation of processed files that are empty.
 
-`-X`, `--cli` Makes the program operate as a command-line interface that takes no keyboard input and closes immediately upon completion or failure. (Incompatible with `--watch`).
+`-X`, `--cli` Makes the program operate as a command-line interface that takes no keyboard input and closes immediately upon completion or failure. (Incompatible with `--watch`)
