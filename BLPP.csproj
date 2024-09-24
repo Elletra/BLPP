@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <ApplicationIcon>BLPP.ico</ApplicationIcon>
-    <Version>0.2.0</Version>
+    <Version>0.3.0</Version>
     <Company>Elletra</Company>
     <Title>Blockland Preprocessor</Title>
     <Product>Blockland Preprocessor</Product>
@@ -14,9 +14,11 @@
     <Authors>Elletra</Authors>
     <PackageId>BLPP</PackageId>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-    <AssemblyVersion>0.2.0</AssemblyVersion>
-    <FileVersion>0.2.0</FileVersion>
+    <AssemblyVersion>0.3.0</AssemblyVersion>
+    <FileVersion>0.3.0</FileVersion>
     <AssemblyName>BLPP</AssemblyName>
+    <PublishAot>True</PublishAot>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
