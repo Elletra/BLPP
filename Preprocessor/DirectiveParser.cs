@@ -66,11 +66,13 @@ namespace BLPP.Preprocessor
 	{
 		private PreprocessorTokenReader _stream = new([]);
 		private DirectiveData _data = new();
+		private bool _blcsDirective = false;
 
 		public DirectiveData Parse(List<Token> tokens)
 		{
 			_stream = new(tokens);
 			_data = new();
+			_blcsDirective = false;
 
 			ParseDirectives();
 
@@ -79,13 +81,13 @@ namespace BLPP.Preprocessor
 
 		private void ParseDirectives()
 		{
-			if (!_stream.Match(TokenType.Directive) || !_stream.MatchLine(Constants.DirectiveParser.BLCS_LINE) || _stream.Peek().Value != Tokens.DIRECTIVE_BLCS)
-			{
-				throw new SyntaxException($"File must have a `##blcs` directive on line {Constants.DirectiveParser.BLCS_LINE}", Constants.DirectiveParser.BLCS_LINE);
-			}
-
 			while (!_stream.IsAtEnd)
 			{
+				if (_stream.Index == 0 && (!_stream.Match(TokenType.Directive) || _stream.Peek().Value != Tokens.DIRECTIVE_BLCS))
+				{
+					throw new SyntaxException($"File must start with a `##blcs` directive", _stream.Peek());
+				}
+
 				Parse(_stream.Read());
 			}
 		}
@@ -115,15 +117,17 @@ namespace BLPP.Preprocessor
 
 		private void ParseBlcs(Token blcs)
 		{
-			if (blcs.Line > Constants.DirectiveParser.BLCS_LINE)
+			if (_blcsDirective)
 			{
 				throw new SyntaxException("`##blcs` directive should only appear once", blcs);
 			}
 
-			if (_stream.MatchLine(blcs))
+			if (!_stream.IsAtEnd)
 			{
-				throw new SyntaxException($"`##blcs` directive should be the only code on line {Constants.DirectiveParser.BLCS_LINE}", _stream.Peek());
+				ExpectDifferentLine(blcs, _stream.Peek());
 			}
+
+			_blcsDirective = true;
 		}
 
 		private void ParseDefine(Token define)
@@ -289,6 +293,14 @@ namespace BLPP.Preprocessor
 			if (baseToken.Line != testToken.Line)
 			{
 				throw new UnexpectedEndOfLineException(baseToken);
+			}
+		}
+
+		private void ExpectDifferentLine(Token baseToken, Token? testToken)
+		{
+			if (testToken != null && baseToken.Line == testToken.Line)
+			{
+				throw new UnexpectedTokenException(testToken);
 			}
 		}
 	}
