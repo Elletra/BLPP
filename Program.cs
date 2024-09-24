@@ -11,6 +11,8 @@
 using BLPP.Preprocessor;
 using BLPP.Util;
 
+Console.Title = $"Blockland Preprocessor ({Constants.Preprocessor.VERSION})";
+
 var errorCode = 0;
 var exitImmediately = true;
 
