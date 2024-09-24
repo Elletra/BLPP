@@ -28,7 +28,11 @@ try
 	else
 	{
 		Logger.Quiet = options.Quiet;
-		Logger.LogHeader();
+
+		if (!options.CommandLineMode)
+		{
+			Logger.LogHeader();
+		}
 
 		new Preprocessor().Preprocess(options);
 	}

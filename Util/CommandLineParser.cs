@@ -84,7 +84,7 @@ namespace BLPP.Util
 						}
 						else if (options.PathSpecified)
 						{
-							Logger.LogError($"Multiple paths specified.");
+							Logger.LogError($"Multiple paths specified");
 							error = true;
 						}
 						else
@@ -99,8 +99,11 @@ namespace BLPP.Util
 
 			if (!options.PathSpecified)
 			{
-				Logger.LogHeader();
-				Logger.LogError("No path specified.\n");
+				if (!options.Quiet && !options.CommandLineMode)
+				{
+					Logger.LogHeader();
+					Logger.LogError("No path specified\n");
+				}
 
 				DisplayHelp();
 
