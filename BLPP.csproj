@@ -19,6 +19,7 @@
     <AssemblyName>BLPP</AssemblyName>
     <PublishAot>True</PublishAot>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
 
   <ItemGroup>
