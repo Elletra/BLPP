@@ -5,7 +5,7 @@
  *
  * This file is part of the BLPP source code. It may be used under the BSD 3-Clause License.
  *
- * For full terms see the LICENSE file or visit https://spdx.org/licenses/BSD-3-Clause.html
+ * For full terms, see the LICENSE file or visit https://spdx.org/licenses/BSD-3-Clause.html
  */
 
 using BLPP.Preprocessor;
