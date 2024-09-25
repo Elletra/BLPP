@@ -1,4 +1,4 @@
-# Blockland Preprocessor (0.3.3)
+# Blockland Preprocessor (0.4.0)
 
 This program transpiles custom preprocessor directives into TorqueScript code. It mainly allows for the usage of macros, like in C/C++.
 
@@ -114,6 +114,38 @@ The above will expand to:
 datablock PlayerData(Enemy_Orc) { health = 50; isSilly = true; };
 ```
 
+### String Literal Concatenation
+
+You can also use `#@` for string literal concatenation, ***as long as they use the same quote character***.
+
+For example:
+
+```cs
+##define concat(str1, str2) #%str1 #@ #%str2
+
+echo(#concat("Hello ", "there!"));
+```
+
+The above will expand to:
+
+```cs
+echo("Hello there!");
+```
+
+The same will work for two tagged strings.
+
+However, if you try to use a tagged string and a regular string, it ***will not*** work:
+
+```cs
+echo(#concat('Hello ', "there!"));
+```
+
+The above will expand to:
+
+```cs
+echo('Hello '"there!");
+```
+
 ### Using Macros from Other Files
 
 To use macros from other files, you can do so like this:
@@ -149,3 +181,30 @@ You can also use it as a command-line interface: `usage: BLPP path [-h] [-d] (-w
 `-e`, `--output-empty` Forces creation of processed files that are empty.
 
 `-X`, `--cli` Makes the program operate as a command-line interface that takes no keyboard input and closes immediately upon completion or failure. (Incompatible with `--watch`)
+
+## Building
+
+### Windows
+
+To build for Windows:
+
+1. Open in Visual Studio 2022 (or later)
+2. Right-click on the `BLPP` project and click "Publish"
+3. Create a new profile with the "Folder" target
+4. Set the "Target Runtime" to `win-x64`
+5. Click "Show all settings" and set "Deployment mode" to `Self-contained`
+6. Click "Save" and then click the large "Publish" button in the top right corner
+
+### Linux
+
+To build for Linux:
+
+1. Install the .NET 8.0 SDK with `sudo apt-get update && sudo apt-get install -y dotnet-sdk-8.0`
+2. Navigate to the repo folder
+3. Build the project: `dotnet publish -a x64 --os linux -c Release --sc`
+
+### macOS
+
+To build for macOS:
+
+1. Don't.
