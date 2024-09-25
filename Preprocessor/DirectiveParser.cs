@@ -113,6 +113,10 @@ namespace BLPP.Preprocessor
 					throw new SyntaxException($"Unknown or unsupported preprocessor directive `{token.Value}`", token);
 				}
 			}
+			else if (token.Type != TokenType.Macro && token.IsPreprocessorToken)
+			{
+				throw new UnexpectedTokenException(token);
+			}
 		}
 
 		private void ParseBlcs(Token blcs)
