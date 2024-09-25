@@ -310,7 +310,7 @@ namespace BLPP.Preprocessor
 			}
 
 			// Strip out the directive.
-			_stream.Remove(startIndex, _stream.Index - startIndex);
+			_stream.Remove(startIndex, count: _stream.Index - startIndex);
 			_stream.Seek(startIndex);
 		}
 
@@ -322,8 +322,21 @@ namespace BLPP.Preprocessor
 			{
 				if (_stream.Read().Type == TokenType.MacroConcat)
 				{
-					_stream.Peek().WhitespaceBefore = "";
-					_stream.Remove(_stream.Index - 1, 1);
+					var left = _stream.Peek(-2);
+					var right = _stream.Peek();
+
+					if (left.Type == TokenType.String && right.Type == TokenType.String && left.Value[0] == right.Value[0])
+					{
+						var quote = left.Value[0];
+
+						left.Value = quote + left.Value[1..^1] + right.Value[1..^1] + quote;
+						_stream.Remove(_stream.Index - 1, count: 2);
+					}
+					else
+					{
+						_stream.Peek().WhitespaceBefore = "";
+						_stream.Remove(_stream.Index - 1, count: 1);
+					}
 				}
 			}
 		}

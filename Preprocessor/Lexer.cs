@@ -26,7 +26,7 @@ namespace BLPP.Preprocessor
 	public class Token(TokenType type, string value, int line, string whitespaceBefore = "")
 	{
 		public TokenType Type { get; } = type;
-		public string Value { get; } = value;
+		public string Value { get; set; } = value;
 		public int Line { get; } = line;
 		public string WhitespaceBefore { get; set; } = whitespaceBefore;
 
