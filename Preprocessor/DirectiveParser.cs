@@ -96,21 +96,22 @@ namespace BLPP.Preprocessor
 		{
 			if (token.Type == TokenType.Directive)
 			{
-				if (token.Value == Tokens.DIRECTIVE_BLCS)
+				switch (token.Value)
 				{
-					ParseBlcs(token);
-				}
-				else if (token.Value == Tokens.DIRECTIVE_DEFINE)
-				{
-					ParseDefine(token);
-				}
-				else if (token.Value == Tokens.DIRECTIVE_USE)
-				{
-					ParseUse(token);
-				}
-				else
-				{
-					throw new SyntaxException($"Unknown or unsupported preprocessor directive `{token.Value}`", token);
+					case Tokens.DIRECTIVE_BLCS:
+						ParseBlcs(token);
+						break;
+
+					case Tokens.DIRECTIVE_DEFINE:
+						ParseDefine(token);
+						break;
+
+					case Tokens.DIRECTIVE_USE:
+						ParseUse(token);
+						break;
+
+					default:
+						throw new SyntaxException($"Unknown or unsupported preprocessor directive `{token.Value}`", token);
 				}
 			}
 			else if (token.Type != TokenType.Macro && token.IsPreprocessorToken)
