@@ -185,27 +185,6 @@ namespace TorqueLint.Lexer
 			_token = "";
 		}
 
-		private void ScanOperator(char ch)
-		{
-			try
-			{
-				// This works because the operators are sorted by longest first.
-				_token = _multicharOperators.First(op => _stream.Match(op, offset: -1));
-			}
-			catch (InvalidOperationException)
-			{
-				if (ch == '$')
-				{
-					throw new UnexpectedTokenException(_line, ch);
-				}
-
-				// Nothing was found, so it's a single-character operator.
-				_token = $"{ch}";
-			}
-
-			AddToken(TokenType.Operator);
-		}
-
 		private void ScanVariable(char ch)
 		{
 			_token = $"{ch}{_stream.Read()}";
@@ -241,6 +220,27 @@ namespace TorqueLint.Lexer
 			}
 
 			AddToken(TokenType.Variable);
+		}
+
+		private void ScanOperator(char ch)
+		{
+			try
+			{
+				// This works because the operators are sorted by longest first.
+				_token = _multicharOperators.First(op => _stream.Match(op, offset: -1));
+			}
+			catch (InvalidOperationException)
+			{
+				if (ch == '$')
+				{
+					throw new UnexpectedTokenException(_line, ch);
+				}
+
+				// Nothing was found, so it's a single-character operator.
+				_token = $"{ch}";
+			}
+
+			AddToken(TokenType.Operator);
 		}
 
 		private void ScanString(char quote)
