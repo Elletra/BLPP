@@ -8,7 +8,7 @@
  * For full terms, see the LICENSE file or visit https://spdx.org/licenses/BSD-3-Clause.html
  */
 
-using BLPP.Util;
+using Shared.Util;
 
 namespace BLPP.Preprocessor
 {
