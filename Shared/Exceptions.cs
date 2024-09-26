@@ -1,4 +1,14 @@
-﻿namespace Shared
+﻿/**
+ * Exceptions.cs
+ *
+ * Copyright (C) 2024 Elletra
+ *
+ * This file is part of the TorqueSharp source code. It may be used under the BSD 3-Clause License.
+ *
+ * For full terms, see the LICENSE file or visit https://spdx.org/licenses/BSD-3-Clause.html
+ */
+
+namespace Shared
 {
 	public class FileExtensionException(string file, string ext) : Exception($"File \"{file}\" does not have a '{ext}' extension") { }
 
