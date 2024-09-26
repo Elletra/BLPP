@@ -9,6 +9,7 @@
  */
 
 using BLPP.Preprocessor;
+using Shared;
 using Shared.Util;
 
 namespace BLPP.Util
@@ -40,10 +41,10 @@ namespace BLPP.Util
 			{
 				if (IsAtEnd)
 				{
-					throw new UnexpectedEndOfCodeException(Stream[^1]);
+					throw new UnexpectedEndOfCodeException(Stream[^1].Line);
 				}
 
-				throw new UnexpectedTokenException(Peek());
+				throw new UnexpectedTokenException(Peek().Line, Peek().Value);
 			}
 
 			return advance ? Read() : Peek();

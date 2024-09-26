@@ -9,6 +9,7 @@
  */
 
 using BLPP.Util;
+using Shared;
 
 namespace BLPP.Preprocessor
 {
@@ -110,7 +111,7 @@ namespace BLPP.Preprocessor
 
 				if (Path.GetExtension(nextPath) != Constants.Preprocessor.FILE_EXTENSION)
 				{
-					throw new FileExtensionException(nextPath);
+					throw new FileExtensionException(nextPath, Constants.Preprocessor.FILE_EXTENSION);
 				}
 
 				if (!File.Exists(nextPath))

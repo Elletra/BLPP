@@ -9,6 +9,7 @@
  */
 
 using BLPP.Util;
+using Shared;
 
 namespace BLPP.Preprocessor
 {
@@ -49,7 +50,7 @@ namespace BLPP.Preprocessor
 				{
 					var pathStr = $"'{string.Join("' -> '", path)}'";
 
-					throw new SyntaxException($"Infinite macro recursion {pathStr}", check.Line);
+					throw new SyntaxException(check.Line, $"Infinite macro recursion {pathStr}");
 				}
 
 				CheckForMacroLoops(_macros[name], visited, path);
@@ -69,7 +70,7 @@ namespace BLPP.Preprocessor
 
 					if (token.MacroName == macro.Name)
 					{
-						throw new SyntaxException($"Macro '{macro.Name}' cannot invoke itself", token.Line);
+						throw new SyntaxException(token.Line, $"Macro '{macro.Name}' cannot invoke itself");
 					}
 				}
 				else if (token.Type == TokenType.MacroParameter && !macro.HasArgument(token.Value))
@@ -129,7 +130,7 @@ namespace BLPP.Preprocessor
 			{
 				if (macro.FixedArgumentCount > 0)
 				{
-					throw new SyntaxException($"Macro '{macro.Name}' requires at least {macro.FixedArgumentCount} argument(s)", line);
+					throw new SyntaxException(line, $"Macro '{macro.Name}' requires at least {macro.FixedArgumentCount} argument(s)");
 				}
 
 				return [];
@@ -179,12 +180,12 @@ namespace BLPP.Preprocessor
 
 			if (args.Count < macro.FixedArgumentCount)
 			{
-				throw new SyntaxException($"Not enough arguments passed into macro '{macro.Name}'", line);
+				throw new SyntaxException(line, $"Not enough arguments passed into macro '{macro.Name}'");
 			}
 
 			if (args.Count > macro.FixedArgumentCount && !macro.IsVariadic)
 			{
-				throw new SyntaxException($"Too many arguments passed into macro '{macro.Name}'", line);
+				throw new SyntaxException(line, $"Too many arguments passed into macro '{macro.Name}'");
 			}
 
 			return args;
@@ -202,7 +203,7 @@ namespace BLPP.Preprocessor
 
 				if (!token.IsValidMacroBodyToken)
 				{
-					throw new UnexpectedTokenException(token);
+					throw new UnexpectedTokenException(token.Line, token.Value);
 				}
 
 				if (type == TokenType.MacroParameter)
@@ -254,7 +255,7 @@ namespace BLPP.Preprocessor
 						}
 
 						default:
-							throw new SyntaxException($"Unknown or unsupported macro keyword `{value}`", token);
+							throw new SyntaxException(token.Line, $"Unknown or unsupported macro keyword `{value}`");
 					}
 				}
 				else
@@ -306,7 +307,7 @@ namespace BLPP.Preprocessor
 			}
 			else if (token.Value != Constants.Tokens.DIRECTIVE_BLCS)
 			{
-				throw new SyntaxException($"Unknown or unsupported preprocessor directive `{token.Value}`", token);
+				throw new SyntaxException(token.Line, $"Unknown or unsupported preprocessor directive `{token.Value}`");
 			}
 
 			// Strip out the directive.

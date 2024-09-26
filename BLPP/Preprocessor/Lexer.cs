@@ -8,6 +8,7 @@
  * For full terms, see the LICENSE file or visit https://spdx.org/licenses/BSD-3-Clause.html
  */
 
+using Shared;
 using Shared.Util;
 
 namespace BLPP.Preprocessor
@@ -158,7 +159,7 @@ namespace BLPP.Preprocessor
 						}
 						else
 						{
-							throw new UnexpectedTokenException(ch, _line);
+							throw new UnexpectedTokenException(_line, ch);
 						}
 
 						break;
@@ -189,7 +190,7 @@ namespace BLPP.Preprocessor
 			{
 				if (_stream.MatchAny("#%!") && !_stream.MatchIdentifierStart(offset: 1))
 				{
-					throw new UnexpectedTokenException(ch, _line);
+					throw new UnexpectedTokenException(_line, ch);
 				}
 
 				value += _stream.Read();
@@ -205,7 +206,7 @@ namespace BLPP.Preprocessor
 			}
 			else
 			{
-				throw new UnexpectedTokenException(ch, _line);
+				throw new UnexpectedTokenException(_line, ch);
 			}
 
 			AddToken(value[..2] switch

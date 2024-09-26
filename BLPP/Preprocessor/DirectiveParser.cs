@@ -9,6 +9,7 @@
  */
 
 using BLPP.Util;
+using Shared;
 using static BLPP.Preprocessor.Constants;
 
 namespace BLPP.Preprocessor
@@ -85,7 +86,7 @@ namespace BLPP.Preprocessor
 			{
 				if (_stream.Index == 0 && (!_stream.Match(TokenType.Directive) || _stream.Peek().Value != Tokens.DIRECTIVE_BLCS))
 				{
-					throw new SyntaxException($"File must start with a `##blcs` directive", _stream.Peek());
+					throw new SyntaxException(_stream.Peek().Line, $"File must start with a `##blcs` directive");
 				}
 
 				Parse(_stream.Read());
@@ -111,12 +112,12 @@ namespace BLPP.Preprocessor
 						break;
 
 					default:
-						throw new SyntaxException($"Unknown or unsupported preprocessor directive `{token.Value}`", token);
+						throw new SyntaxException(token.Line, $"Unknown or unsupported preprocessor directive `{token.Value}`");
 				}
 			}
 			else if (token.Type != TokenType.Macro && token.IsPreprocessorToken)
 			{
-				throw new UnexpectedTokenException(token);
+				throw new UnexpectedTokenException(token.Line, token.Value);
 			}
 		}
 
@@ -124,7 +125,7 @@ namespace BLPP.Preprocessor
 		{
 			if (_blcsDirective)
 			{
-				throw new SyntaxException("`##blcs` directive should only appear once", blcs);
+				throw new SyntaxException(blcs.Line, "`##blcs` directive should only appear once");
 			}
 
 			if (!_stream.IsAtEnd)
@@ -161,7 +162,7 @@ namespace BLPP.Preprocessor
 
 				if (bracket.Line > macro.Line + 1)
 				{
-					throw new SyntaxException($"Opening curly bracket cannot be more than 1 line below macro declaration", bracket);
+					throw new SyntaxException(bracket.Line, $"Opening curly bracket cannot be more than 1 line below macro declaration");
 				}
 			}
 
@@ -171,19 +172,19 @@ namespace BLPP.Preprocessor
 
 			if (!brackets && body.Count <= 0)
 			{
-				throw new UnexpectedEndOfLineException(define);
+				throw new UnexpectedEndOfLineException(define.Line);
 			}
 
 			if (body.Count > 0)
 			{
 				if (body[0].Type == TokenType.MacroConcat)
 				{
-					throw new SyntaxException($"Macro concatenation operator `{body[0].Value}` missing left side operand", body[0]);
+					throw new SyntaxException(body[0].Line, $"Macro concatenation operator `{body[0].Value}` missing left side operand");
 				}
 
 				if (body[^1].Type == TokenType.MacroConcat)
 				{
-					throw new SyntaxException($"Macro concatenation operator `{body[^1].Value}` missing right side operand", body[^1]);
+					throw new SyntaxException(body[^1].Line, $"Macro concatenation operator `{body[^1].Value}` missing right side operand");
 				}
 
 				body[0].WhitespaceBefore = "";
@@ -217,7 +218,7 @@ namespace BLPP.Preprocessor
 			{
 				if (macro.Arguments[i] == Constants.Tokens.MACRO_VAR_ARGS && i != macro.Arguments.Count - 1)
 				{
-					throw new SyntaxException($"Variadic macro parameters must be at the end of a parameter list", macro.Line);
+					throw new SyntaxException(macro.Line, $"Variadic macro parameters must be at the end of a parameter list");
 				}
 			}
 		}
@@ -239,7 +240,7 @@ namespace BLPP.Preprocessor
 					case TokenType.Macro:
 						if (token.MacroName == macro.Name)
 						{
-							throw new SyntaxException($"Macro '{macro.Name}' cannot invoke itself", token.Line);
+							throw new SyntaxException(token.Line, $"Macro '{macro.Name}' cannot invoke itself");
 						}
 
 						macro.Macros.Add(token.MacroName);
@@ -256,12 +257,12 @@ namespace BLPP.Preprocessor
 					case TokenType.MacroKeyword:
 						if (token.IsVariadicMacroKeyword && !macro.IsVariadic)
 						{
-							throw new SyntaxException($"Cannot use `{value}` in a non-variadic macro", token);
+							throw new SyntaxException(token.Line, $"Cannot use `{value}` in a non-variadic macro");
 						}
 
 						if (!token.IsValidMacroKeyword)
 						{
-							throw new SyntaxException($"Unknown or unsupported macro keyword `{value}`", token);
+							throw new SyntaxException(token.Line, $"Unknown or unsupported macro keyword `{value}`");
 						}
 
 						break;
@@ -287,7 +288,7 @@ namespace BLPP.Preprocessor
 
 			if (_stream.MatchLine(token))
 			{
-				throw new UnexpectedTokenException(_stream.Peek());
+				throw new UnexpectedTokenException(_stream.Peek().Line, _stream.Peek().Value);
 			}
 
 			_data.AddFile(name.Value);
@@ -297,15 +298,15 @@ namespace BLPP.Preprocessor
 		{
 			if (baseToken.Line != testToken.Line)
 			{
-				throw new UnexpectedEndOfLineException(baseToken);
+				throw new UnexpectedEndOfLineException(baseToken.Line);
 			}
 		}
 
-		private void ExpectDifferentLine(Token baseToken, Token? testToken)
+		private void ExpectDifferentLine(Token baseToken, Token testToken)
 		{
-			if (testToken != null && baseToken.Line == testToken.Line)
+			if (baseToken.Line == testToken.Line)
 			{
-				throw new UnexpectedTokenException(testToken);
+				throw new UnexpectedTokenException(testToken.Line, testToken.Value);
 			}
 		}
 	}
