@@ -2,7 +2,7 @@
 using Shared.Util;
 using System.Collections.Immutable;
 
-namespace TorqueLint.Lexer
+namespace TorqueLinter.Lexer
 {
 	public class Lexer
 	{

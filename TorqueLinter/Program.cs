@@ -1,4 +1,4 @@
-﻿using TorqueLint.Lexer;
+﻿using TorqueLinter.Lexer;
 
 var code = File.ReadAllText("./test.cs");
 

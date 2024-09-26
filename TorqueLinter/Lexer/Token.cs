@@ -1,4 +1,4 @@
-﻿namespace TorqueLint.Lexer
+﻿namespace TorqueLinter.Lexer
 {
 	public enum TokenType : byte
 	{
