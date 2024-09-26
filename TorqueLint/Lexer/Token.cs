@@ -11,11 +11,12 @@
 		Invalid,
 	}
 
-	public class Token(TokenType type, string value, int line)
+	public class Token(TokenType type, string value, int line, int col)
 	{
 		public TokenType Type { get; } = type;
 		public string Value { get; } = value;
 		public int Line { get; } = line;
+		public int Col { get; } = col;
 
 		public bool IsValid => Type < TokenType.Invalid;
 	}

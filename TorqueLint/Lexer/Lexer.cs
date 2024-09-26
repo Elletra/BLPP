@@ -9,7 +9,6 @@ namespace TorqueLint.Lexer
 		private TextStreamReader _stream = new("");
 		private List<Token> _tokens = [];
 		private string _token = "";
-		private int _line = 1;
 
 		static private readonly ImmutableHashSet<string> _keywords =
 		[
@@ -69,7 +68,6 @@ namespace TorqueLint.Lexer
 			_stream = new(code);
 			_tokens = [];
 			_token = "";
-			_line = 1;
 
 			Scan();
 
@@ -80,11 +78,13 @@ namespace TorqueLint.Lexer
 		{
 			while (!_stream.IsAtEnd)
 			{
-				Scan(_stream.Read());
+				var col = _stream.Col;
+
+				Scan(_stream.Read(), col);
 			}
 		}
 
-		private void Scan(char ch)
+		private void Scan(char ch, int col)
 		{
 			switch (ch)
 			{
@@ -96,12 +96,12 @@ namespace TorqueLint.Lexer
 					break;
 
 				case '(' or ')' or '{' or '}' or '[' or ']' or '.' or ',' or '?' or ':' or ';':
-					ScanDelimiter(ch);
+					ScanDelimiter(ch, col);
 					break;
 
 				case '@':
 					_token = $"{ch}";
-					AddToken(TokenType.Concat);
+					AddToken(TokenType.Concat, col);
 					break;
 
 				case '+' or '-' or '*' or '/' or '<' or '>' or '=' or '|' or '&' or '%' or '$' or '^' or '~' or '!':
@@ -111,31 +111,31 @@ namespace TorqueLint.Lexer
 					}
 					else if ((ch == '%' || ch == '$') && _stream.MatchIdentifierStart())
 					{
-						ScanVariable(ch);
+						ScanVariable(ch, col);
 					}
 					else
 					{
-						ScanOperator(ch);
+						ScanOperator(ch, col);
 					}
 
 					break;
 
 				case '\'' or '"':
-					ScanString(ch);
+					ScanString(ch, col);
 					break;
 
 				default:
 					if (char.IsAsciiDigit(ch))
 					{
-						ScanNumber(ch);
+						ScanNumber(ch, col);
 					}
 					else if (char.IsAsciiLetter(ch) || ch == '_')
 					{
-						ScanIdentifierOrKeyword(ch);
+						ScanIdentifierOrKeyword(ch, col);
 					}
 					else
 					{
-						throw new UnexpectedTokenException(_line, ch);
+						throw new UnexpectedTokenException(_stream.Line, col, ch);
 					}
 
 					break;
@@ -144,16 +144,15 @@ namespace TorqueLint.Lexer
 
 		private void ScanNewline(char ch)
 		{
-			if (ch == '\r' && _stream.Match('\n'))
+			if (ch == '\r')
 			{
-				_stream.Advance();
+				_stream.AdvanceIfMatch('\n');
 			}
 
 			_token = "";
-			_line++;
 		}
 
-		private void ScanDelimiter(char ch)
+		private void ScanDelimiter(char ch, int col)
 		{
 			_token += ch;
 
@@ -176,8 +175,8 @@ namespace TorqueLint.Lexer
 				":" => TokenType.Colon,
 				"::" => TokenType.ColonColon,
 				";" => TokenType.Semicolon,
-				_ => throw new UnexpectedTokenException(_line, ch),
-			});
+				_ => throw new UnexpectedTokenException(_stream.Line, col, ch),
+			}, col);
 		}
 
 		private void ScanComment()
@@ -190,7 +189,7 @@ namespace TorqueLint.Lexer
 			_token = "";
 		}
 
-		private void ScanVariable(char ch)
+		private void ScanVariable(char ch, int col)
 		{
 			_token = $"{ch}{_stream.Read()}";
 
@@ -204,6 +203,7 @@ namespace TorqueLint.Lexer
 				}
 
 				var colonIndex = _stream.Index;
+				var colonCol = _stream.Col;
 				var colons = "";
 
 				while (_stream.Match(':'))
@@ -219,15 +219,16 @@ namespace TorqueLint.Lexer
 				{
 					// Rewind if the colons aren't part of the variable name.
 					_stream.Seek(colonIndex);
+					_stream.Col = colonCol;
 
 					endOfVariable = true;
 				}
 			}
 
-			AddToken(TokenType.Variable);
+			AddToken(TokenType.Variable, col);
 		}
 
-		private void ScanOperator(char ch)
+		private void ScanOperator(char ch, int col)
 		{
 			try
 			{
@@ -238,17 +239,17 @@ namespace TorqueLint.Lexer
 			{
 				if (ch == '$')
 				{
-					throw new UnexpectedTokenException(_line, ch);
+					throw new UnexpectedTokenException(_stream.Line, col, ch);
 				}
 
 				// Nothing was found, so it's a single-character operator.
 				_token = $"{ch}";
 			}
 
-			AddToken(TokenType.Operator);
+			AddToken(TokenType.Operator, col);
 		}
 
-		private void ScanString(char quote)
+		private void ScanString(char quote, int col)
 		{
 			_token += quote;
 
@@ -261,7 +262,7 @@ namespace TorqueLint.Lexer
 
 				if (ch == '\r' || ch == '\n')
 				{
-					throw new UnterminatedStringException(_line);
+					throw new UnterminatedStringException(_stream.Line);
 				}
 
 				matchingQuote = ch == quote && escapeChars % 2 == 0;
@@ -276,13 +277,13 @@ namespace TorqueLint.Lexer
 
 			if (!matchingQuote)
 			{
-				throw new UnterminatedStringException(_line);
+				throw new UnterminatedStringException(_stream.Line);
 			}
 
-			AddToken(TokenType.String);
+			AddToken(TokenType.String, col);
 		}
 
-		private void ScanNumber(char ch)
+		private void ScanNumber(char ch, int col)
 		{
 			_token = $"{ch}";
 
@@ -334,7 +335,7 @@ namespace TorqueLint.Lexer
 				}
 			}
 
-			AddToken(type);
+			AddToken(type, col);
 		}
 
 		private void ScanDigits()
@@ -345,7 +346,7 @@ namespace TorqueLint.Lexer
 			}
 		}
 
-		private void ScanIdentifierOrKeyword(char ch)
+		private void ScanIdentifierOrKeyword(char ch, int col)
 		{
 			_token = $"{ch}";
 
@@ -365,12 +366,12 @@ namespace TorqueLint.Lexer
 				type = TokenType.Keyword;
 			}
 
-			AddToken(type);
+			AddToken(type, col);
 		}
 
-		private Token AddToken(TokenType type)
+		private Token AddToken(TokenType type, int col)
 		{
-			var token = new Token(type, _token, _line);
+			var token = new Token(type, _token, _stream.Line, col);
 
 			_token = "";
 			_tokens.Add(token);
