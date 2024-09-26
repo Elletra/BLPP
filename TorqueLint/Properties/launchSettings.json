@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "TorqueLint": {
+      "commandName": "Project",
+      "workingDirectory": ".\\bin"
+    }
+  }
+}
