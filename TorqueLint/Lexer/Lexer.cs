@@ -29,12 +29,9 @@ namespace TorqueLint.Lexer
 			"default",
 			"datablock",
 			"new",
-			"SPC",
-			"TAB",
-			"NL",
 		];
 
-		private ImmutableHashSet<string> _multicharOperators =
+		static private readonly ImmutableHashSet<string> _multicharOperators =
 		[
 			"!$=",
 			"<<=",
@@ -58,6 +55,13 @@ namespace TorqueLint.Lexer
 			">>",
 			"||",
 			"&&",
+		];
+
+		static private readonly ImmutableHashSet<string> _concatCharOperators =
+		[
+			"SPC",
+			"TAB",
+			"NL",
 		];
 
 		public List<Token> Scan(string code)
@@ -96,6 +100,7 @@ namespace TorqueLint.Lexer
 					break;
 
 				case '@':
+					_token = $"{ch}";
 					AddToken(TokenType.Concat);
 					break;
 
@@ -349,7 +354,18 @@ namespace TorqueLint.Lexer
 				_token += _stream.Read();
 			}
 
-			AddToken(_keywords.Contains(_token) ? TokenType.Keyword : TokenType.Identifier);
+			var type = TokenType.Identifier;
+
+			if (_concatCharOperators.Contains(_token))
+			{
+				type = TokenType.Concat;
+			}
+			else if (_keywords.Contains(_token))
+			{
+				type = TokenType.Keyword;
+			}
+
+			AddToken(type);
 		}
 
 		private Token AddToken(TokenType type)
