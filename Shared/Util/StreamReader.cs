@@ -21,9 +21,9 @@ namespace Shared.Util
 		public bool IsValidIndex(int index) => index >= 0 && index < Stream.Count;
 		public bool IsValidOffset(int offset) => IsValidIndex(Index + offset);
 
-		public T Read() => Stream[Index++];
-		public void Advance(int amount = 1) => Index += amount;
-		public T Peek(int offset = 0) => Stream[Index + offset];
+		public virtual T Read() => Stream[Index++];
+		public virtual void Advance() => Index++;
+		public virtual T Peek(int offset = 0) => Stream[Index + offset];
 
 		public bool Seek(int seekIndex)
 		{
@@ -42,8 +42,44 @@ namespace Shared.Util
 
 	public class TextStreamReader : StreamReader<char>
 	{
+		public int Line { get; set; } = 1;
+		public int Col { get; set; } = 1;
+
 		public TextStreamReader(List<char> stream) : base(stream) { }
-		public TextStreamReader(string stream) : base([.. stream]) { }
+		public TextStreamReader(string stream) : base([..stream]) { }
+
+		private void UpdateLineAndColumn()
+		{
+			if (Match('\r'))
+			{
+				Line++;
+				Col = 1;
+			}
+			else if (Match('\n'))
+			{
+				if (!Match('\r', offset: -1))
+				{
+					Line++;
+					Col = 1;
+				}
+			}
+			else
+			{
+				Col++;
+			}
+		}
+
+		public override void Advance()
+		{
+			UpdateLineAndColumn();
+			base.Advance();
+		}
+
+		public override char Read()
+		{
+			UpdateLineAndColumn();
+			return base.Read();
+		}
 
 		public bool Match(char value, int offset = 0) => IsValidOffset(offset) && value == Peek(offset);
 

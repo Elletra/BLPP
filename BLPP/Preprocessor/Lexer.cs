@@ -88,14 +88,12 @@ namespace BLPP.Preprocessor
 	public class Lexer
 	{
 		private TextStreamReader _stream = new("");
-		private int _line = 1;
 		private string _whitespace = "";
 		private List<Token> _tokens = [];
 
 		public List<Token> Scan(string code)
 		{
 			_stream = new(code);
-			_line = 1;
 			_whitespace = "";
 			_tokens = [];
 
@@ -159,7 +157,7 @@ namespace BLPP.Preprocessor
 						}
 						else
 						{
-							throw new UnexpectedTokenException(_line, ch);
+							throw new UnexpectedTokenException(_stream.Line, ch);
 						}
 
 						break;
@@ -174,12 +172,10 @@ namespace BLPP.Preprocessor
 
 		private void ScanNewline(char ch)
 		{
-			if (ch == '\r' && _stream.Match('\n'))
+			if (ch == '\r')
 			{
-				_stream.Advance();
+				_stream.AdvanceIfMatch('\n');
 			}
-
-			_line++;
 		}
 
 		private void ScanDirective(char ch)
@@ -190,7 +186,7 @@ namespace BLPP.Preprocessor
 			{
 				if (_stream.MatchAny("#%!") && !_stream.MatchIdentifierStart(offset: 1))
 				{
-					throw new UnexpectedTokenException(_line, ch);
+					throw new UnexpectedTokenException(_stream.Line, ch);
 				}
 
 				value += _stream.Read();
@@ -206,7 +202,7 @@ namespace BLPP.Preprocessor
 			}
 			else
 			{
-				throw new UnexpectedTokenException(_line, ch);
+				throw new UnexpectedTokenException(_stream.Line, ch);
 			}
 
 			AddToken(value[..2] switch
@@ -233,7 +229,7 @@ namespace BLPP.Preprocessor
 
 				if (next == '\r' || next == '\n')
 				{
-					throw new UnexpectedEndOfLineException(_line);
+					throw new UnexpectedEndOfLineException(_stream.Line);
 				}
 
 				matchingQuote = next == quote && escapeChars % 2 == 0;
@@ -248,7 +244,7 @@ namespace BLPP.Preprocessor
 
 			if (!matchingQuote)
 			{
-				throw new UnterminatedStringException(_line);
+				throw new UnterminatedStringException(_stream.Line);
 			}
 
 			AddToken(TokenType.String, str);
@@ -290,13 +286,19 @@ namespace BLPP.Preprocessor
 					else
 					{
 						matchingEnd = _stream.Match("*/");
-						_stream.Advance(amount: matchingEnd ? 2 : 1);
+
+						_stream.Advance();
+
+						if (matchingEnd)
+						{
+							_stream.Advance();
+						}
 					}
 				}
 
 				if (!matchingEnd)
 				{
-					throw new UnterminatedCommentException(_line);
+					throw new UnterminatedCommentException(_stream.Line);
 				}
 			}
 			else
@@ -334,7 +336,7 @@ namespace BLPP.Preprocessor
 
 		private Token AddToken(TokenType type, string value)
 		{
-			var token = new Token(type, value, _line, _whitespace);
+			var token = new Token(type, value, _stream.Line, _whitespace);
 
 			_tokens.Add(token);
 
