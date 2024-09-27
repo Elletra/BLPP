@@ -27,6 +27,7 @@ namespace TorqueLinter.Lexer
 		public string Value { get; } = value;
 		public int Line { get; } = line;
 		public int Col { get; } = col;
+		public bool WhitespaceBefore { get; set; } = false;
 
 		public bool IsValid => Type < TokenType.Invalid;
 	}

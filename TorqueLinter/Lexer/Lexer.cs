@@ -19,6 +19,7 @@ namespace TorqueLinter.Lexer
 		private TextStreamReader _stream = new("");
 		private List<Token> _tokens = [];
 		private string _token = "";
+		private bool _whitespaceBefore = false;
 
 		static private readonly ImmutableHashSet<string> _keywords =
 		[
@@ -78,6 +79,7 @@ namespace TorqueLinter.Lexer
 			_stream = new(code);
 			_tokens = [];
 			_token = "";
+			_whitespaceBefore = false;
 
 			Scan();
 
@@ -96,9 +98,13 @@ namespace TorqueLinter.Lexer
 
 		private void Scan(char ch, int col)
 		{
+			var clearWhitespace = true;
+
 			switch (ch)
 			{
 				case ' ' or '\t':
+					_whitespaceBefore = true;
+					clearWhitespace = false;
 					break;
 
 				case '\r' or '\n':
@@ -149,6 +155,11 @@ namespace TorqueLinter.Lexer
 					}
 
 					break;
+			}
+
+			if (clearWhitespace)
+			{
+				_whitespaceBefore = false;
 			}
 		}
 
@@ -381,7 +392,10 @@ namespace TorqueLinter.Lexer
 
 		private Token AddToken(TokenType type, int col)
 		{
-			var token = new Token(type, _token, _stream.Line, col);
+			var token = new Token(type, _token, _stream.Line, col)
+			{
+				WhitespaceBefore = _whitespaceBefore,
+			};
 
 			_token = "";
 			_tokens.Add(token);
