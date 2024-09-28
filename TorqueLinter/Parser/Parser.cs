@@ -87,8 +87,10 @@ namespace TorqueLinter.Parser
 			while (!_stream.IsAtEnd && expression == null)
 			{
 				var token = _stream.Read();
+				var type = token.Type;
+				var value = token.Value;
 
-				switch (token.Type)
+				switch (type)
 				{
 					case TokenType.Variable:
 						stack.Push(new VariableNode(token));
@@ -117,6 +119,31 @@ namespace TorqueLinter.Parser
 						}
 
 						break;
+
+					case TokenType.IncrementDecrement:
+						stack.Push(new IncrementDecrementNode(token, stack.Pop()));
+						break;
+
+					case TokenType.Operator or TokenType.Assignment:
+					{
+						if (stack.Count > 0)
+						{
+							var left = stack.Pop();
+							var right = ParseExpression();
+
+							stack.Push(type == TokenType.Operator ? new BinaryNode(token, left, right) : new AssignmentNode(token, left, right));
+						}
+						else if (value == SUB_TOKEN || value == LOGIC_NOT_TOKEN || value == BIT_NOT_TOKEN)
+						{
+							stack.Push(new UnaryNode(token, ParseExpression()));
+						}
+						else
+						{
+							throw new UnexpectedTokenException(token.Line, value);
+						}
+
+						break;
+					}
 
 					case TokenType.QuestionMark:
 					{
