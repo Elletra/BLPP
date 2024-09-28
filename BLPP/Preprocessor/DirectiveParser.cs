@@ -10,7 +10,7 @@
 
 using BLPP.Util;
 using Shared;
-using static BLPP.Preprocessor.Constants;
+using static BLPP.Preprocessor.Constants.Tokens;
 
 namespace BLPP.Preprocessor
 {
@@ -22,7 +22,7 @@ namespace BLPP.Preprocessor
 		public readonly List<Token> Body = [];
 		public readonly HashSet<string> Macros = [];
 
-		public bool IsVariadic => Arguments[^1] == Tokens.MACRO_VAR_ARGS;
+		public bool IsVariadic => Arguments[^1] == MACRO_VAR_ARGS;
 		public int FixedArgumentCount => IsVariadic ? Arguments.Count - 1 : Arguments.Count;
 
 		public bool HasArgument(string arg) => Arguments.Contains(arg[2..]);
@@ -84,7 +84,7 @@ namespace BLPP.Preprocessor
 		{
 			while (!_stream.IsAtEnd)
 			{
-				if (_stream.Index == 0 && (!_stream.Match(TokenType.Directive) || _stream.Peek().Value != Tokens.DIRECTIVE_BLCS))
+				if (_stream.Index == 0 && (!_stream.Match(TokenType.Directive) || _stream.Peek().Value != DIRECTIVE_BLCS))
 				{
 					throw new SyntaxException(_stream.Peek().Line, $"File must start with a `##blcs` directive");
 				}
@@ -99,15 +99,15 @@ namespace BLPP.Preprocessor
 			{
 				switch (token.Value)
 				{
-					case Tokens.DIRECTIVE_BLCS:
+					case DIRECTIVE_BLCS:
 						ParseBlcs(token);
 						break;
 
-					case Tokens.DIRECTIVE_DEFINE:
+					case DIRECTIVE_DEFINE:
 						ParseDefine(token);
 						break;
 
-					case Tokens.DIRECTIVE_USE:
+					case DIRECTIVE_USE:
 						ParseUse(token);
 						break;
 
@@ -216,7 +216,7 @@ namespace BLPP.Preprocessor
 
 			for (var i = 0; i < macro.Arguments.Count; i++)
 			{
-				if (macro.Arguments[i] == Constants.Tokens.MACRO_VAR_ARGS && i != macro.Arguments.Count - 1)
+				if (macro.Arguments[i] == MACRO_VAR_ARGS && i != macro.Arguments.Count - 1)
 				{
 					throw new SyntaxException(macro.Line, $"Variadic macro parameters must be at the end of a parameter list");
 				}

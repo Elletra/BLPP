@@ -9,7 +9,7 @@
  */
 
 using BLPP.Preprocessor;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using static BLPP.Preprocessor.Constants.Preprocessor;
 
 namespace BLPP.Util
 {
@@ -140,9 +140,9 @@ namespace BLPP.Util
 				return false;
 			}
 
-			if (Path.GetExtension(options.Path) != Constants.Preprocessor.FILE_EXTENSION)
+			if (Path.GetExtension(options.Path) != FILE_EXTENSION)
 			{
-				Logger.LogError($"File at the path specified does not have a '{Constants.Preprocessor.FILE_EXTENSION}' extension");
+				Logger.LogError($"File at the path specified does not have a '{FILE_EXTENSION}' extension");
 				Logger.LogError("If the path is a directory, please specify with --directory' or -d'");
 
 				return false;

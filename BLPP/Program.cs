@@ -10,8 +10,9 @@
 
 using BLPP.Preprocessor;
 using BLPP.Util;
+using static BLPP.Preprocessor.Constants.Preprocessor;
 
-Console.Title = $"Blockland Preprocessor ({Constants.Preprocessor.VERSION})";
+Console.Title = $"Blockland Preprocessor ({VERSION})";
 
 var errorCode = 0;
 var exitImmediately = true;

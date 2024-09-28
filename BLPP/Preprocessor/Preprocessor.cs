@@ -10,6 +10,7 @@
 
 using BLPP.Util;
 using Shared;
+using static BLPP.Preprocessor.Constants.Preprocessor;
 
 namespace BLPP.Preprocessor
 {
@@ -39,7 +40,7 @@ namespace BLPP.Preprocessor
 				}
 				else if (PreprocessDirectory(options.Path) <= 0)
 				{
-					Logger.LogError($"Directory contains no files with the '{Constants.Preprocessor.FILE_EXTENSION}' extension");
+					Logger.LogError($"Directory contains no files with the '{FILE_EXTENSION}' extension");
 				}
 			}
 			else
@@ -67,7 +68,7 @@ namespace BLPP.Preprocessor
 
 		private int PreprocessDirectory(string directoryPath)
 		{
-			var files = Directory.GetFiles(directoryPath, $"*{Constants.Preprocessor.FILE_EXTENSION}");
+			var files = Directory.GetFiles(directoryPath, $"*{FILE_EXTENSION}");
 			var visited = new HashSet<string>();
 
 			foreach (var file in files)
@@ -109,9 +110,9 @@ namespace BLPP.Preprocessor
 
 				Logger.LogMessage($"Parsing: \"{nextPath}\"");
 
-				if (Path.GetExtension(nextPath) != Constants.Preprocessor.FILE_EXTENSION)
+				if (Path.GetExtension(nextPath) != FILE_EXTENSION)
 				{
-					throw new FileExtensionException(nextPath, Constants.Preprocessor.FILE_EXTENSION);
+					throw new FileExtensionException(nextPath, FILE_EXTENSION);
 				}
 
 				if (!File.Exists(nextPath))
@@ -165,7 +166,7 @@ namespace BLPP.Preprocessor
 				Logger.LogMessage($"Processing: \"{name}\"");
 
 				var processedTokens = _processor.Process(tokens, macros);
-				var code = Constants.Preprocessor.FILE_TOP_COMMENT;
+				var code = FILE_TOP_COMMENT;
 				var line = 1;
 
 				foreach (var token in processedTokens)
@@ -189,7 +190,7 @@ namespace BLPP.Preprocessor
 					using var stream = new FileStream(newFile, FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
 					using var writer = new StreamWriter(stream);
 
-					writer.Write($"{code}\n\n{Constants.Preprocessor.FILE_BOTTOM_COMMENT}");
+					writer.Write($"{code}\n\n{FILE_BOTTOM_COMMENT}");
 
 					if (empty)
 					{
@@ -221,7 +222,7 @@ namespace BLPP.Preprocessor
 					| NotifyFilters.Security
 					| NotifyFilters.Size,
 
-				Filter = $"*{Constants.Preprocessor.FILE_EXTENSION}",
+				Filter = $"*{FILE_EXTENSION}",
 				InternalBufferSize = WATCHER_BUFFER_SIZE,
 				IncludeSubdirectories = true,
 				EnableRaisingEvents = true,

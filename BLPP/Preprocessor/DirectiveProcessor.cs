@@ -10,6 +10,7 @@
 
 using BLPP.Util;
 using Shared;
+using static BLPP.Preprocessor.Constants.Tokens;
 
 namespace BLPP.Preprocessor
 {
@@ -217,21 +218,21 @@ namespace BLPP.Preprocessor
 				{
 					switch (value)
 					{
-						case Constants.Tokens.MACRO_KEYWORD_LINE:
+						case MACRO_KEYWORD_LINE:
 							body.Add(new(TokenType.Number, $"{line}", line, whitespace));
 							break;
 
-						case Constants.Tokens.MACRO_KEYWORD_VARG_COUNT:
+						case MACRO_KEYWORD_VARG_COUNT:
 							body.Add(new(TokenType.Number, $"{macro.FixedArgumentCount - args.Count}", line, whitespace));
 							break;
 
-						case Constants.Tokens.MACRO_KEYWORD_VARGS or Constants.Tokens.MACRO_KEYWORD_VARGS_PREPEND:
+						case MACRO_KEYWORD_VARGS or MACRO_KEYWORD_VARGS_PREPEND:
 						{
 							var fixedArgsCount = macro.FixedArgumentCount;
 
 							if (args.Count > fixedArgsCount)
 							{
-								var prependComma = value == Constants.Tokens.MACRO_KEYWORD_VARGS_PREPEND;
+								var prependComma = value == MACRO_KEYWORD_VARGS_PREPEND;
 
 								if (prependComma)
 								{
@@ -271,12 +272,12 @@ namespace BLPP.Preprocessor
 		{
 			var startIndex = _stream.Index - 1;
 
-			if (token.Value == Constants.Tokens.DIRECTIVE_USE)
+			if (token.Value == DIRECTIVE_USE)
 			{
 				// Advance past file name.
 				_stream.Advance();
 			}
-			else if (token.Value == Constants.Tokens.DIRECTIVE_DEFINE)
+			else if (token.Value == DIRECTIVE_DEFINE)
 			{
 				var name = _stream.Consume(TokenType.Identifier);
 				var macro = _macros[name.Value];
@@ -305,7 +306,7 @@ namespace BLPP.Preprocessor
 					_stream.Advance();
 				}
 			}
-			else if (token.Value != Constants.Tokens.DIRECTIVE_BLCS)
+			else if (token.Value != DIRECTIVE_BLCS)
 			{
 				throw new SyntaxException(token.Line, $"Unknown or unsupported preprocessor directive `{token.Value}`");
 			}

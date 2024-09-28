@@ -10,6 +10,7 @@
 
 using Shared;
 using Shared.Util;
+using static BLPP.Preprocessor.Constants.Tokens;
 
 namespace BLPP.Preprocessor
 {
@@ -66,18 +67,18 @@ namespace BLPP.Preprocessor
 
 		public bool IsVariadicMacroKeyword => Type == TokenType.MacroKeyword && Value switch
 		{
-			Constants.Tokens.MACRO_KEYWORD_VARG_COUNT => true,
-			Constants.Tokens.MACRO_KEYWORD_VARGS => true,
-			Constants.Tokens.MACRO_KEYWORD_VARGS_PREPEND => true,
+			MACRO_KEYWORD_VARG_COUNT => true,
+			MACRO_KEYWORD_VARGS => true,
+			MACRO_KEYWORD_VARGS_PREPEND => true,
 			_ => false,
 		};
 
 		public bool IsValidMacroKeyword => Type == TokenType.MacroKeyword && Value switch
 		{
-			Constants.Tokens.MACRO_KEYWORD_LINE => true,
-			Constants.Tokens.MACRO_KEYWORD_VARG_COUNT =>  true,
-			Constants.Tokens.MACRO_KEYWORD_VARGS =>  true,
-			Constants.Tokens.MACRO_KEYWORD_VARGS_PREPEND => true,
+			MACRO_KEYWORD_LINE => true,
+			MACRO_KEYWORD_VARG_COUNT =>  true,
+			MACRO_KEYWORD_VARGS =>  true,
+			MACRO_KEYWORD_VARGS_PREPEND => true,
 			_ => false,
 		};
 	}

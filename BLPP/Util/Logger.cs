@@ -9,6 +9,7 @@
  */
 
 using BLPP.Preprocessor;
+using static BLPP.Preprocessor.Constants.Preprocessor;
 
 namespace BLPP.Util
 {
@@ -38,7 +39,7 @@ namespace BLPP.Util
 
 		static public void LogHeader()
 		{
-			LogMessage($"### Blockland Preprocessor ({Constants.Preprocessor.VERSION}) by {Constants.Preprocessor.AUTHOR} ###\n", ConsoleColor.White);
+			LogMessage($"### Blockland Preprocessor ({VERSION}) by {AUTHOR} ###\n", ConsoleColor.White);
 		}
 	}
 }
