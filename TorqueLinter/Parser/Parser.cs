@@ -52,7 +52,7 @@ namespace TorqueLinter.Parser
 			var peek = _stream.Peek();
 			var statement = ParseStatement(peek, topLevel);
 
-			return statement ?? throw new UnexpectedTokenException(peek.Line, peek.Value);
+			return statement ?? throw new SyntaxException(peek.Line, peek.Col, "Expected statement");
 		}
 
 		private Node? ParseStatement(Token token, bool topLevel = true)
@@ -86,15 +86,11 @@ namespace TorqueLinter.Parser
 						return ParseReturn(token);
 
 					default:
-						break;
+						throw new UnexpectedTokenException(token.Line, token.Value);
 				}
 			}
-			else
-			{
-				return ExpectExpressionStatement();
-			}
 
-			throw new UnexpectedTokenException(token.Line, token.Value);
+			return ExpectExpressionStatement();
 		}
 
 		private Node ExpectExpressionStatement()
@@ -321,7 +317,7 @@ namespace TorqueLinter.Parser
 			}
 			else
 			{
-				node.Body[0] = ExpectStatement(topLevel: false);
+				node.Body = [ExpectStatement(topLevel: false)];
 			}
 
 			return node;
