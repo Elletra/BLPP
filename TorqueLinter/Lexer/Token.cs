@@ -19,7 +19,7 @@ namespace TorqueLinter.Lexer
 		String, Integer, Float, Variable,
 		ParenLeft, ParenRight, CurlyLeft, CurlyRight, SquareLeft, SquareRight,
 		Period, Comma, QuestionMark, Colon, ColonColon, Semicolon,
-		Operator, Concat, Assignment,
+		Operator, Concat, Assignment, IncrementDecrement,
 		Invalid,
 	}
 

@@ -47,21 +47,21 @@ namespace TorqueLinter.Lexer
 			STR_NOT_EQ_TOKEN,
 			SHL_ASSIGN_TOKEN,
 			SHR_ASSIGN_TOKEN,
-			STR_EQUAL_TOKEN,
 			ADD_ASSIGN_TOKEN,
 			SUB_ASSIGN_TOKEN,
 			MUL_ASSIGN_TOKEN,
 			DIV_ASSIGN_TOKEN,
 			MOD_ASSIGN_TOKEN,
+			BIT_OR_ASSIGN_TOKEN,
+			BIT_AND_ASSIGN_TOKEN,
+			BIT_XOR_ASSIGN_TOKEN,
+			INCREMENT_TOKEN,
+			DECREMENT_TOKEN,
+			STR_EQUAL_TOKEN,
 			EQUAL_TOKEN,
 			NOT_EQUAL_TOKEN,
 			LT_EQUAL_TOKEN,
 			GT_EQUAL_TOKEN,
-			BIT_OR_ASSIGN_TOKEN,
-			BIT_AND_ASSIGN_TOKEN,
-			BIT_XOR_TOKEN,
-			INCREMENT_TOKEN,
-			DECREMENT_TOKEN,
 			SHL_TOKEN,
 			SHR_TOKEN,
 			LOGIC_OR_TOKEN,
@@ -256,6 +256,8 @@ namespace TorqueLinter.Lexer
 			{
 				// This works because the operators are sorted by longest first.
 				_token = _multicharOperators.First(op => _stream.Match(op, offset: -1));
+
+				_stream.Advance(amount: _token.Length - 1);
 			}
 			catch (InvalidOperationException)
 			{
@@ -268,7 +270,16 @@ namespace TorqueLinter.Lexer
 				_token = $"{ch}";
 			}
 
-			AddToken(TokenType.Operator, col);
+			AddToken(_token switch
+			{
+				ASSIGN_TOKEN or MOD_ASSIGN_TOKEN or
+				ADD_ASSIGN_TOKEN or SUB_ASSIGN_TOKEN or
+				MUL_ASSIGN_TOKEN or DIV_ASSIGN_TOKEN or
+				SHL_ASSIGN_TOKEN or SHR_ASSIGN_TOKEN or
+				BIT_OR_ASSIGN_TOKEN or BIT_AND_ASSIGN_TOKEN => TokenType.Assignment,
+				INCREMENT_TOKEN or DECREMENT_TOKEN => TokenType.IncrementDecrement,
+				_ => TokenType.Operator,
+			}, col);
 		}
 
 		private void ScanString(char quote, int col)

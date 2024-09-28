@@ -81,6 +81,14 @@ namespace Shared.Util
 			return base.Read();
 		}
 
+		public void Advance(int amount)
+		{
+			for (var i = 0; i < amount; i++)
+			{
+				Advance();
+			}
+		}
+
 		public bool Match(char value, int offset = 0) => IsValidOffset(offset) && value == Peek(offset);
 
 		public bool Match(string chars, int offset = 0)
