@@ -17,4 +17,13 @@ namespace TorqueLinter.AST
 		public readonly Node Test = test;
 		public List<Node> Body { get; set; } = [];
 	}
+
+	public class ForLoopNode(Token startToken, Node init, Node test, Node end) : Node(startToken)
+	{
+		public readonly Node Init = init;
+		public readonly Node Test = test;
+		public readonly Node End = end;
+
+		public List<Node> Body { get; set; } = [];
+	}
 }

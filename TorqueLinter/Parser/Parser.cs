@@ -49,7 +49,7 @@ namespace TorqueLinter.Parser
 
 		private Node ExpectStatement(bool topLevel = true)
 		{
-			var peek = _stream.Peek();
+			var peek = !_stream.IsAtEnd ? _stream.Peek() : throw new UnexpectedEndOfCodeException(_stream.Peek(-1).Line);
 			var statement = ParseStatement(peek, topLevel);
 
 			return statement ?? throw new SyntaxException(peek.Line, peek.Col, "Expected statement");
@@ -73,7 +73,7 @@ namespace TorqueLinter.Parser
 					{
 						if (!topLevel)
 						{
-							throw new SyntaxException(token.Line, "Functions cannot be part of another statement other than packages");
+							throw new SyntaxException(token.Line, "Functions cannot be part of another statement (except packages)");
 						}
 
 						return ParseFunction(token);
@@ -81,6 +81,9 @@ namespace TorqueLinter.Parser
 
 					case WHILE_TOKEN:
 						return ParseWhileLoop(token);
+
+					case FOR_TOKEN:
+						return ParseForLoop(token);
 
 					case RETURN_TOKEN:
 						return ParseReturn(token);
@@ -107,6 +110,15 @@ namespace TorqueLinter.Parser
 			_stream.Consume(TokenType.Semicolon);
 
 			return node;
+		}
+
+		private Node ParseExpression(TokenType delimiter)
+		{
+			var expression = ParseExpression();
+
+			_stream.Consume(delimiter);
+
+			return expression;
 		}
 
 		private Node ParseExpression()
@@ -307,6 +319,32 @@ namespace TorqueLinter.Parser
 
 			_stream.Consume(TokenType.ParenRight);
 
+			var brackets = _stream.AdvanceIfMatch(TokenType.CurlyLeft);
+
+			if (brackets)
+			{
+				node.Body = ParseStatementList(topLevel: false);
+
+				_stream.Consume(TokenType.CurlyRight);
+			}
+			else
+			{
+				node.Body = [ExpectStatement(topLevel: false)];
+			}
+
+			return node;
+		}
+
+		private ForLoopNode ParseForLoop(Token token)
+		{
+			_stream.ConsumeKeyword(FOR_TOKEN);
+			_stream.Consume(TokenType.ParenLeft);
+
+			var init = ParseExpression(TokenType.Semicolon);
+			var test = ParseExpression(TokenType.Semicolon);
+			var end = ParseExpression(TokenType.ParenRight);
+
+			var node = new ForLoopNode(token, init, test, end);
 			var brackets = _stream.AdvanceIfMatch(TokenType.CurlyLeft);
 
 			if (brackets)
