@@ -140,10 +140,10 @@ namespace BLPP.Preprocessor
 						ScanString(ch);
 						break;
 
-					case '{' or '}' or '[' or ']' or '.' or '?' or ':' or ';'
-						or '+' or '-' or '*' or '/' or '<' or '>' or '=' or '|' or '&' or '^' or '@'
-						or '~' or '!'
-						or '$' or '%':
+					case '{' or '}' or '[' or ']' or '.' or '?' or ':' or ';' or
+						'+' or '-' or '*' or '/' or '<' or '>' or '=' or '|' or '&' or '^' or '@' or
+						'~' or '!' or
+						'$' or '%':
 						ScanPunctuation(ch);
 						break;
 
