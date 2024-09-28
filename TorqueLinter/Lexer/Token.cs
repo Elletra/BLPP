@@ -36,9 +36,25 @@ namespace TorqueLinter.Lexer
 		public bool IsExpressionEnd => Type switch
 		{
 			TokenType.Keyword => Value == OR_TOKEN,
-			TokenType.Comma => true,
-			TokenType.Colon => true,
+			TokenType.Comma or TokenType.Colon or TokenType.Semicolon => true,
+			_ => false,
+		};
+
+		public bool IsDelimiter => Type switch
+		{
+			TokenType.ParenLeft or TokenType.ParenRight or
+			TokenType.CurlyLeft or TokenType.CurlyRight or
+			TokenType.SquareLeft or TokenType.SquareRight or
+			TokenType.Period or TokenType.Comma or
+			TokenType.Colon or TokenType.ColonColon or
 			TokenType.Semicolon => true,
+			_ => false,
+		};
+
+		public bool IsOperator => Type switch
+		{
+			TokenType.Operator or TokenType.Concat or
+			TokenType.Assignment or TokenType.IncrementDecrement => true,
 			_ => false,
 		};
 	}

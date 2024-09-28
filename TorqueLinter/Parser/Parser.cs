@@ -47,8 +47,21 @@ namespace TorqueLinter.Parser
 			return list;
 		}
 
+		private Node ExpectStatement(bool topLevel = true)
+		{
+			var peek = _stream.Peek();
+			var statement = ParseStatement(peek, topLevel);
+
+			return statement ?? throw new UnexpectedTokenException(peek.Line, peek.Value);
+		}
+
 		private Node? ParseStatement(Token token, bool topLevel = true)
 		{
+			if (token.IsDelimiter)
+			{
+				return null;
+			}
+
 			if (token.Type == TokenType.Keyword)
 			{
 				switch (token.Value)
@@ -66,15 +79,38 @@ namespace TorqueLinter.Parser
 						return ParseFunction(token);
 					}
 
+					case WHILE_TOKEN:
+						return ParseWhileLoop(token);
+
 					case RETURN_TOKEN:
 						return ParseReturn(token);
 
 					default:
-						throw new UnexpectedTokenException(token.Line, token.Value);
+						break;
 				}
 			}
+			else
+			{
+				return ExpectExpressionStatement();
+			}
 
-			return null;
+			throw new UnexpectedTokenException(token.Line, token.Value);
+		}
+
+		private Node ExpectExpressionStatement()
+		{
+			var peek = _stream.Peek();
+			var node = ParseExpression();
+
+			// TODO: Function calls and object declarations are also expression statements.
+			if (node is not AssignmentNode && node is not IncrementDecrementNode)
+			{
+				throw new SyntaxException(peek.Line, peek.Col, "Expected statement");
+			}
+
+			_stream.Consume(TokenType.Semicolon);
+
+			return node;
 		}
 
 		private Node ParseExpression()
@@ -176,13 +212,10 @@ namespace TorqueLinter.Parser
 
 					case TokenType.ParenRight:
 					{
-						if (parentheses >= 0)
-						{
-							parentheses--;
-						}
-						else
+						if (--parentheses < 0)
 						{
 							expression = stack.Pop();
+							_stream.Seek(_stream.Index - 1);
 						}
 
 						break;
@@ -265,6 +298,31 @@ namespace TorqueLinter.Parser
 			node.Body = ParseStatementList(topLevel: false);
 
 			_stream.Consume(TokenType.CurlyRight);
+
+			return node;
+		}
+
+		private WhileLoopNode ParseWhileLoop(Token token)
+		{
+			_stream.ConsumeKeyword(WHILE_TOKEN);
+			_stream.Consume(TokenType.ParenLeft);
+
+			var node = new WhileLoopNode(token, ParseExpression());
+
+			_stream.Consume(TokenType.ParenRight);
+
+			var brackets = _stream.AdvanceIfMatch(TokenType.CurlyLeft);
+
+			if (brackets)
+			{
+				node.Body = ParseStatementList(topLevel: false);
+
+				_stream.Consume(TokenType.CurlyRight);
+			}
+			else
+			{
+				node.Body[0] = ExpectStatement(topLevel: false);
+			}
 
 			return node;
 		}
