@@ -20,15 +20,19 @@ namespace TorqueLinter.Parser
 	public class Parser
 	{
 		private ParserTokenReader _stream = new([]);
+		private int _loopDepth = 0;
+
+		private bool InLoop => _loopDepth > 0;
 
 		public List<Node> Parse(List<Token> tokens)
 		{
 			_stream = new(tokens);
+			_loopDepth = 0;
 
-			return ParseStatementList();
+			return ParseStatementList(topLevel: true);
 		}
 
-		private List<Node> ParseStatementList(bool topLevel = true)
+		private List<Node> ParseStatementList(bool topLevel)
 		{
 			var list = new List<Node>();
 
@@ -47,7 +51,7 @@ namespace TorqueLinter.Parser
 			return list;
 		}
 
-		private Node ExpectStatement(bool topLevel = true)
+		private Node ExpectStatement(bool topLevel)
 		{
 			var peek = !_stream.IsAtEnd ? _stream.Peek() : throw new UnexpectedEndOfCodeException(_stream.Peek(-1).Line);
 			var statement = ParseStatement(peek, topLevel);
@@ -55,7 +59,7 @@ namespace TorqueLinter.Parser
 			return statement ?? throw new SyntaxException(peek.Line, peek.Col, "Expected statement");
 		}
 
-		private Node? ParseStatement(Token token, bool topLevel = true)
+		private Node? ParseStatement(Token token, bool topLevel)
 		{
 			if (token.IsDelimiter)
 			{
@@ -84,6 +88,12 @@ namespace TorqueLinter.Parser
 
 					case FOR_TOKEN:
 						return ParseForLoop(token);
+
+					case BREAK_TOKEN:
+						return ParseBreak(token);
+
+					case CONTINUE_TOKEN:
+						return ParseContinue(token);
 
 					case RETURN_TOKEN:
 						return ParseReturn(token);
@@ -331,6 +341,8 @@ namespace TorqueLinter.Parser
 
 			var brackets = _stream.AdvanceIfMatch(TokenType.CurlyLeft);
 
+			_loopDepth++;
+
 			if (brackets)
 			{
 				node.Body = ParseStatementList(topLevel: false);
@@ -341,6 +353,8 @@ namespace TorqueLinter.Parser
 			{
 				node.Body = [ExpectStatement(topLevel: false)];
 			}
+
+			_loopDepth--;
 
 			return node;
 		}
@@ -357,6 +371,8 @@ namespace TorqueLinter.Parser
 			var node = new ForLoopNode(token, init, test, end);
 			var brackets = _stream.AdvanceIfMatch(TokenType.CurlyLeft);
 
+			_loopDepth++;
+
 			if (brackets)
 			{
 				node.Body = ParseStatementList(topLevel: false);
@@ -368,7 +384,35 @@ namespace TorqueLinter.Parser
 				node.Body = [ExpectStatement(topLevel: false)];
 			}
 
+			_loopDepth--;
+
 			return node;
+		}
+
+		private BreakNode ParseBreak(Token token)
+		{
+			_stream.ConsumeKeyword(BREAK_TOKEN);
+			_stream.Consume(TokenType.Semicolon);
+
+			if (!InLoop)
+			{
+				throw new SyntaxException(token.Line, token.Col, "Break statement outside of loop");
+			}
+
+			return new(token);
+		}
+
+		private ContinueNode ParseContinue(Token token)
+		{
+			_stream.ConsumeKeyword(CONTINUE_TOKEN);
+			_stream.Consume(TokenType.Semicolon);
+
+			if (!InLoop)
+			{
+				throw new SyntaxException(token.Line, token.Col, "Continue statement outside of loop");
+			}
+
+			return new(token);
 		}
 
 		private ReturnNode ParseReturn(Token token)

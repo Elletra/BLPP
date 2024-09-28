@@ -26,4 +26,7 @@ namespace TorqueLinter.AST
 
 		public List<Node> Body { get; set; } = [];
 	}
+
+	public class BreakNode(Token token) : Node(token) { }
+	public class ContinueNode(Token token) : Node(token) { }
 }
