@@ -12,9 +12,11 @@ using TorqueLinter.Lexer;
 
 namespace TorqueLinter.AST
 {
-	public abstract class Node(Token startToken)
+	public abstract class Node(int startLine, int startCol)
 	{
-		public readonly int StartLine = startToken.Line;
-		public readonly int StartCol = startToken.Col;
+		public readonly int StartLine = startLine;
+		public readonly int StartCol = startCol;
+
+		public Node(Token startToken) : this(startToken.Line, startToken.Col) { }
 	}
 }

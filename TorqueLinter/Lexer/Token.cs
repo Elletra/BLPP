@@ -8,6 +8,8 @@
  * For full terms, see the LICENSE file or visit https://spdx.org/licenses/BSD-3-Clause.html
  */
 
+using static TorqueLinter.Constants.Parser;
+
 namespace TorqueLinter.Lexer
 {
 	public enum TokenType : byte
@@ -30,5 +32,14 @@ namespace TorqueLinter.Lexer
 		public bool WhitespaceBefore { get; set; } = false;
 
 		public bool IsValid => Type < TokenType.Invalid;
+
+		public bool IsExpressionEnd => Type switch
+		{
+			TokenType.Keyword => Value == OR_TOKEN,
+			TokenType.Comma => true,
+			TokenType.Colon => true,
+			TokenType.Semicolon => true,
+			_ => false,
+		};
 	}
 }

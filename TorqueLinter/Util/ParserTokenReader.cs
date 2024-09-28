@@ -32,6 +32,8 @@ namespace TorqueLinter.Util
 			return true;
 		}
 
+		public bool MatchAny(params TokenType[] types) => types.Any(Match);
+
 		public bool AdvanceIfMatch(TokenType type)
 		{
 			var matched = Match(type);

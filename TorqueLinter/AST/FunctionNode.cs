@@ -24,7 +24,5 @@ namespace TorqueLinter.AST
 		public readonly string Name = name;
 		public readonly List<string> Arguments = [];
 		public List<Node> Body { get; set; } = [];
-
-		public bool HasNamespace => Namespace != null;
 	}
 }
