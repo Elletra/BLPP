@@ -11,6 +11,7 @@
 using Shared;
 using Shared.Util;
 using System.Collections.Immutable;
+using static TorqueLinter.Constants.Parser;
 
 namespace TorqueLinter.Lexer
 {
@@ -23,55 +24,55 @@ namespace TorqueLinter.Lexer
 
 		static private readonly ImmutableHashSet<string> _keywords =
 		[
-			"package",
-			"function",
-			"return",
-			"while",
-			"for",
-			"break",
-			"continue",
-			"if",
-			"else",
-			"switch",
-			"switch$",
-			"case",
-			"or",
-			"default",
-			"datablock",
-			"new",
+			PACKAGE_TOKEN,
+			FUNCTION_TOKEN,
+			RETURN_TOKEN,
+			WHILE_TOKEN,
+			FOR_TOKEN,
+			BREAK_TOKEN,
+			CONTINUE_TOKEN,
+			IF_TOKEN,
+			ELSE_TOKEN,
+			SWITCH_TOKEN,
+			SWITCH_STRING_TOKEN,
+			CASE_TOKEN,
+			OR_TOKEN,
+			DEFAULT_TOKEN,
+			DATABLOCK_TOKEN,
+			NEW_TOKEN,
 		];
 
 		static private readonly ImmutableHashSet<string> _multicharOperators =
 		[
-			"!$=",
-			"<<=",
-			">>=",
-			"$=",
-			"+=",
-			"-=",
-			"*=",
-			"/=",
-			"<=",
-			">=",
-			"==",
-			"|=",
-			"&=",
-			"%=",
-			"^=",
-			"!=",
-			"++",
-			"--",
-			"<<",
-			">>",
-			"||",
-			"&&",
+			STR_NOT_EQ_TOKEN,
+			SHL_ASSIGN_TOKEN,
+			SHR_ASSIGN_TOKEN,
+			STR_EQUAL_TOKEN,
+			ADD_ASSIGN_TOKEN,
+			SUB_ASSIGN_TOKEN,
+			MUL_ASSIGN_TOKEN,
+			DIV_ASSIGN_TOKEN,
+			MOD_ASSIGN_TOKEN,
+			EQUAL_TOKEN,
+			NOT_EQUAL_TOKEN,
+			LT_EQUAL_TOKEN,
+			GT_EQUAL_TOKEN,
+			BIT_OR_ASSIGN_TOKEN,
+			BIT_AND_ASSIGN_TOKEN,
+			BIT_XOR_TOKEN,
+			INCREMENT_TOKEN,
+			DECREMENT_TOKEN,
+			SHL_TOKEN,
+			SHR_TOKEN,
+			LOGIC_OR_TOKEN,
+			LOGIC_AND_TOKEN,
 		];
 
 		static private readonly ImmutableHashSet<string> _concatCharOperators =
 		[
-			"SPC",
-			"TAB",
-			"NL",
+			CONCAT_SPACE_TOKEN,
+			CONCAT_TAB_TOKEN,
+			CONCAT_NEWLINE_TOKEN,
 		];
 
 		public List<Token> Scan(string code)
