@@ -229,6 +229,16 @@ namespace TorqueLinter.Parser
 						break;
 					}
 
+					case TokenType.Keyword:
+						// "break" can be both an identifier and a statement in TorqueScript, for some reason.
+						if (token.Value != "break")
+						{
+							throw new UnexpectedTokenException(token.Line, token.Value);
+						}
+
+						stack.Push(new IdentifierNode(token));
+						break;
+
 					default:
 						throw new UnexpectedTokenException(token.Line, token.Value);
 				}
