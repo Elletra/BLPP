@@ -9,6 +9,7 @@
  */
 
 using Shared;
+using System.Xml.Linq;
 using TorqueLinter.AST;
 using TorqueLinter.Lexer;
 using TorqueLinter.Util;
@@ -95,11 +96,17 @@ namespace TorqueLinter.Parser
 					case CONTINUE_TOKEN:
 						return ParseContinue(token);
 
+					case IF_TOKEN:
+						return ParseIf(token);
+
+					case ELSE_TOKEN:
+						throw new SyntaxException(token.Line, token.Col, "`else` statement must precede an `if` statement");
+
 					case RETURN_TOKEN:
 						return ParseReturn(token);
 
 					default:
-						throw new UnexpectedTokenException(token.Line, token.Value);
+						throw new UnexpectedTokenException(token.Line, token.Col, token.Value);
 				}
 			}
 
@@ -396,7 +403,7 @@ namespace TorqueLinter.Parser
 
 			if (!InLoop)
 			{
-				throw new SyntaxException(token.Line, token.Col, "Break statement outside of loop");
+				throw new SyntaxException(token.Line, token.Col, "`break` statement outside of loop");
 			}
 
 			return new(token);
@@ -409,10 +416,61 @@ namespace TorqueLinter.Parser
 
 			if (!InLoop)
 			{
-				throw new SyntaxException(token.Line, token.Col, "Continue statement outside of loop");
+				throw new SyntaxException(token.Line, token.Col, "`continue` statement outside of loop");
 			}
 
 			return new(token);
+		}
+
+		private IfNode ParseIf(Token token)
+		{
+			_stream.ConsumeKeyword(IF_TOKEN);
+			_stream.Consume(TokenType.ParenLeft);
+
+			var node = new IfNode(token, ParseExpression());
+
+			_stream.Consume(TokenType.ParenRight);
+
+			var brackets = _stream.AdvanceIfMatch(TokenType.CurlyLeft);
+
+			if (brackets)
+			{
+				node.Body = ParseStatementList(topLevel: false);
+
+				_stream.Consume(TokenType.CurlyRight);
+			}
+			else
+			{
+				node.Body = [ExpectStatement(topLevel: false)];
+			}
+
+			if (_stream.Match(TokenType.Keyword) && _stream.Peek().Value == ELSE_TOKEN)
+			{
+				node.Else = ParseElse();
+			}
+
+			return node;
+		}
+
+		private List<Node> ParseElse()
+		{
+			_stream.ConsumeKeyword(ELSE_TOKEN);
+
+			List<Node> nodes;
+			var brackets = _stream.AdvanceIfMatch(TokenType.CurlyLeft);
+
+			if (brackets)
+			{
+				nodes = ParseStatementList(topLevel: false);
+
+				_stream.Consume(TokenType.CurlyRight);
+			}
+			else
+			{
+				nodes = [ExpectStatement(topLevel: false)];
+			}
+
+			return nodes;
 		}
 
 		private ReturnNode ParseReturn(Token token)
